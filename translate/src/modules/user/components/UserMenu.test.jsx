@@ -15,14 +15,15 @@ import {
 import { FileUpload } from './FileUpload';
 import { SignInOutForm } from './SignInOutForm';
 import { UserMenu, UserMenuDialog } from './UserMenu';
+import { vi } from 'vitest';
 
 describe('<UserMenuDialog>', () => {
   beforeAll(() => {
     mockMatchMedia();
-    sinon.stub(Translator, 'useTranslator');
+    vi.mock("~/hooks/useTranslator",()=>({useTranslator:vi.fn()}))
   });
   afterAll(() => {
-    Translator.useTranslator.restore();
+    vi.restoreAllMocks()
   });
 
   const LOCATION = {
@@ -39,7 +40,7 @@ describe('<UserMenuDialog>', () => {
     isAuthenticated = true,
     location = LOCATION,
   } = {}) {
-    Translator.useTranslator.returns(isTranslator);
+    Translator.useTranslator.mockReturnValue(isTranslator);
     return mount(
       <Location.Provider value={location}>
         <MockLocalizationProvider>

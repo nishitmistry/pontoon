@@ -19,8 +19,7 @@ const ENTITIES = [
 ];
 
 describe('<EntityViewProvider', () => {
-  beforeAll(() => sinon.stub(Hooks, 'useAppSelector').returns(ENTITIES));
-  afterAll(() => Hooks.useAppSelector.restore());
+  vi.mock('~/hooks', () => ({ useAppSelector: vi.fn(() => ENTITIES) }));
 
   it('returns the current entity', () => {
     let view;

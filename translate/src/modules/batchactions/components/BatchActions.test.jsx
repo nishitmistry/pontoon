@@ -10,6 +10,7 @@ import { ApproveAll } from './ApproveAll';
 import { BatchActions } from './BatchActions';
 import { RejectAll } from './RejectAll';
 import { ReplaceAll } from './ReplaceAll';
+import { vi } from 'vitest';
 
 const DEFAULT_BATCH_ACTIONS = {
   entities: [],
@@ -19,26 +20,16 @@ const DEFAULT_BATCH_ACTIONS = {
 };
 
 describe('<BatchActions>', () => {
-  beforeAll(() => {
-    sinon.stub(Hooks, 'useAppDispatch').returns(() => {});
-    sinon
-      .stub(Hooks, 'useAppSelector')
-      .callsFake((sel) => sel({ [BATCHACTIONS]: DEFAULT_BATCH_ACTIONS }));
-    sinon.stub(Actions, 'resetSelection').returns({ type: 'whatever' });
-    sinon.stub(Actions, 'selectAll').returns({ type: 'whatever' });
-  });
+  vi.mock('~/hooks', () => ({
+    useAppDispatch: () => vi.fn(),
+    useAppSelector: (selector) =>
+      selector({ [BATCHACTIONS]: DEFAULT_BATCH_ACTIONS }),
+  }));
 
-  afterEach(() => {
-    Actions.resetSelection.reset();
-    Actions.selectAll.reset();
-  });
-
-  afterAll(() => {
-    Hooks.useAppDispatch.restore();
-    Hooks.useAppSelector.restore();
-    Actions.resetSelection.restore();
-    Actions.selectAll.restore();
-  });
+  vi.mock('../actions', () => ({
+    resetSelection: vi.fn(() => ({ type: 'RESET_SELECTION' })),
+    selectAll: vi.fn(() => ({ type: 'SELECT_ALL' })),
+  }));
 
   it('renders correctly', () => {
     const wrapper = shallow(<BatchActions />);
@@ -73,13 +64,13 @@ describe('<BatchActions>', () => {
     const wrapper = shallow(<BatchActions />);
 
     wrapper.find('.selected-count').simulate('click');
-    expect(Actions.resetSelection.called).toBeTruthy();
+    expect(Actions.resetSelection).toHaveBeenCalled();
   });
 
   it('selects all entities when the Select All button is clicked', () => {
     const wrapper = shallow(<BatchActions />);
 
     wrapper.find('.select-all').simulate('click');
-    expect(Actions.selectAll.called).toBeTruthy();
+    expect(Actions.selectAll).toHaveBeenCalled();
   });
 });
