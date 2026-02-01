@@ -1,7 +1,8 @@
 import React from 'react';
 import { act } from 'react-dom/test-utils';
 import { Screenshots } from './Screenshots';
-import { mount } from 'enzyme';
+import { render } from '@testing-library/react';
+import { fireEvent } from '@testing-library/react';
 
 describe('<Screenshots>', () => {
   it('finds several images', () => {
@@ -9,13 +10,13 @@ describe('<Screenshots>', () => {
       Here we have 2 images: http://link.to/image.png
       and https://example.org/en-US/test.jpg
     `;
-    const wrapper = mount(<Screenshots locale='kg' source={source} />);
+    const { container } = render(<Screenshots locale='kg' source={source} />);
 
-    expect(wrapper.find('img')).toHaveLength(2);
-    expect(wrapper.find('img').at(0).prop('src')).toBe(
+    expect(container.querySelectorAll('img')).toHaveLength(2);
+    expect(container.querySelector('img')[0].prop('src')).toBe(
       'http://link.to/image.png',
     );
-    expect(wrapper.find('img').at(1).prop('src')).toBe(
+    expect(container.querySelector('img')[1].prop('src')).toBe(
       'https://example.org/kg/test.jpg',
     );
   });
@@ -23,42 +24,41 @@ describe('<Screenshots>', () => {
   it('does not find non PNG or JPG images', () => {
     const source =
       'That is a non-supported image URL: http://link.to/image.bmp';
-    const wrapper = mount(<Screenshots locale='kg' source={source} />);
+    const { container } = render(<Screenshots locale='kg' source={source} />);
 
-    expect(wrapper.find('img')).toHaveLength(0);
+    expect(container.querySelectorAll('img')).toHaveLength(0);
   });
 
   it('shows a Lightbox on image click', () => {
     const source = 'That is an image URL: http://link.to/image.png';
-    const wrapper = mount(<Screenshots locale='kg' source={source} />);
+    const { container } = render(<Screenshots locale='kg' source={source} />);
 
-    expect(wrapper.find('.lightbox')).toHaveLength(0);
+    expect(container.querySelectorAll('.lightbox')).toHaveLength(0);
 
-    wrapper.find('img').simulate('click');
+    fireEvent.click(container.querySelector('img'));
 
-    expect(wrapper.find('.lightbox')).toHaveLength(1);
+    expect(container.querySelectorAll('.lightbox')).toHaveLength(1);
   });
 
   it('Lightbox closes on click', () => {
     const source = 'That is an image URL: http://link.to/image.png';
-    const wrapper = mount(<Screenshots locale='kg' source={source} />);
-    wrapper.find('img').simulate('click');
-    wrapper.find('.lightbox').simulate('click');
+    const { container } = render(<Screenshots locale='kg' source={source} />);
+    fireEvent.click(container.querySelector('img'));
+    fireEvent.click(container.querySelector('.lightbox'));
 
-    expect(wrapper.find('.lightbox')).toHaveLength(0);
+    expect(container.querySelectorAll('.lightbox')).toHaveLength(0);
   });
 
   it('Lightbox closes on key press', () => {
     const source = 'That is an image URL: http://link.to/image.png';
-    const wrapper = mount(<Screenshots locale='kg' source={source} />);
-    wrapper.find('img').simulate('click');
+    const { container } = render(<Screenshots locale='kg' source={source} />);
+    fireEvent.click(container.querySelector('img'));
     act(() => {
       window.document.dispatchEvent(
         new KeyboardEvent('keydown', { code: 'Escape' }),
       );
     });
-    wrapper.update();
 
-    expect(wrapper.find('.lightbox')).toHaveLength(0);
+    expect(container.querySelectorAll('.lightbox')).toHaveLength(0);
   });
 });

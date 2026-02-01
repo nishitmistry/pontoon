@@ -206,7 +206,7 @@ export function KeyboardShortcuts(): React.ReactElement<'div'> {
   const handleDiscard = useCallback(() => setVisible(false), []);
 
   return (
-    <div className='keyboard-shortcuts'>
+    <div className='keyboard-shortcuts' data-testid="keyboard-shortcuts">
       <Localized id='editor-KeyboardShortcuts--button' attrs={{ title: true }}>
         <div
           className='selector far fa-keyboard'

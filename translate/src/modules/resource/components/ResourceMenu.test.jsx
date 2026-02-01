@@ -1,4 +1,4 @@
-import { mount } from 'enzyme';
+import { fireEvent, render } from '@testing-library/react';
 import { createMemoryHistory } from 'history';
 import React from 'react';
 import { act } from 'react-dom/test-utils';
@@ -29,7 +29,7 @@ function createResourceMenu({
   const history = createMemoryHistory({
     initialEntries: [`/locale/${project}/${resource}/`],
   });
-  return mount(
+  return render(
     <Provider store={store}>
       <LocationProvider history={history}>
         <MockLocalizationProvider>
@@ -42,13 +42,15 @@ function createResourceMenu({
 
 describe('<ResourceMenu>', () => {
   it('renders resource menu correctly', () => {
-    const wrapper = createResourceMenu();
-    wrapper.find('.selector').simulate('click');
+    const { container } = createResourceMenu();
+    fireEvent.click(container.querySelector('.selector'));
 
-    expect(wrapper.find('.menu .search-wrapper')).toHaveLength(1);
-    expect(wrapper.find('.menu > ul')).toHaveLength(2);
-    expect(wrapper.find('.menu > ul').find(ResourceItem)).toHaveLength(3);
-    expect(wrapper.find('.menu .static-links')).toHaveLength(1);
+    expect(container.querySelectorAll('.menu .search-wrapper')).toHaveLength(1);
+    expect(container.querySelectorAll('.menu > ul')).toHaveLength(2);
+    expect(
+      container.querySelectorAll('.menu > ul').find(ResourceItem),
+    ).toHaveLength(3);
+    expect(container.querySelectorAll('.menu .static-links')).toHaveLength(1);
     expect(
       wrapper.find('.menu #resource-ResourceMenu--all-resources'),
     ).toHaveLength(1);
@@ -59,40 +61,43 @@ describe('<ResourceMenu>', () => {
 
   it('searches resource items correctly', () => {
     const SEARCH = 'bc';
-    const wrapper = createResourceMenu();
-    wrapper.find('.selector').simulate('click');
+    const { container } = createResourceMenu();
+    fireEvent.click(container.querySelector('.selector'));
 
     act(() => {
       wrapper.find('.menu .search-wrapper input').prop('onChange')({
         currentTarget: { value: SEARCH },
       });
     });
-    wrapper.update();
 
     expect(wrapper.find('.menu .search-wrapper input').prop('value')).toEqual(
       SEARCH,
     );
-    expect(wrapper.find('.menu > ul').find(ResourceItem)).toHaveLength(2);
+    expect(
+      container.querySelectorAll('.menu > ul').find(ResourceItem),
+    ).toHaveLength(2);
   });
 
   it('hides resource selector for all-projects', () => {
-    const wrapper = createResourceMenu({ project: 'all-projects' });
+    const { container } = createResourceMenu({ project: 'all-projects' });
 
-    expect(wrapper.find('.resource-menu .selector')).toHaveLength(0);
+    expect(container.querySelectorAll('.resource-menu .selector')).toHaveLength(
+      0,
+    );
   });
 
   it('renders resource selector correctly', () => {
-    const wrapper = createResourceMenu();
+    const { container } = createResourceMenu();
 
     const selector = wrapper.find('.resource-menu .selector');
     expect(selector).toHaveLength(1);
     expect(selector.prop('title')).toEqual('path/to.file');
-    expect(selector.find('span:first-child').text()).toEqual('to.file');
+    expect(selector.find('span:first-child').textContent).toEqual('to.file');
     expect(selector.find('.icon')).toHaveLength(1);
   });
 
   it('sets a localized resource name correctly for all-resources', () => {
-    const wrapper = createResourceMenu({ resource: 'all-resources' });
+    const { container } = createResourceMenu({ resource: 'all-resources' });
 
     expect(wrapper.find('#resource-ResourceMenu--all-resources')).toHaveLength(
       1,
@@ -100,10 +105,10 @@ describe('<ResourceMenu>', () => {
   });
 
   it('renders resource menu correctly', () => {
-    const wrapper = createResourceMenu();
+    const { container } = createResourceMenu();
 
     expect(wrapper.find('ResourceMenuDialog')).toHaveLength(0);
-    wrapper.find('.selector').simulate('click');
+    fireEvent.click(container.querySelector('.selector'));
     expect(wrapper.find('ResourceMenuDialog')).toHaveLength(1);
   });
 });

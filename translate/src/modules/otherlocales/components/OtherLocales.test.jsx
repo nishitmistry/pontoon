@@ -1,5 +1,5 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react';
 
 import { OtherLocales } from './OtherLocales';
 
@@ -29,7 +29,7 @@ describe('<OtherLocales>', () => {
       project: 'tmo',
     };
     const user = {};
-    const wrapper = shallow(
+    const { container } = render(
       <OtherLocales
         otherlocales={otherlocales}
         parameters={params}
@@ -45,7 +45,7 @@ describe('<OtherLocales>', () => {
       fetching: true,
     };
     const user = {};
-    const wrapper = shallow(
+    const { container } = render(
       <OtherLocales otherlocales={otherlocales} user={user} />,
     );
 
@@ -58,10 +58,12 @@ describe('<OtherLocales>', () => {
       translations: [],
     };
     const user = {};
-    const wrapper = shallow(
+    const { container } = render(
       <OtherLocales otherlocales={otherlocales} user={user} />,
     );
 
-    expect(wrapper.find('#history-history-no-translations')).toHaveLength(1);
+    expect(
+      container.querySelectorAll('#history-history-no-translations'),
+    ).toHaveLength(1);
   });
 });

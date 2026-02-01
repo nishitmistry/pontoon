@@ -1,16 +1,16 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react';
 
 import { CaighdeanTranslation } from './CaighdeanTranslation';
 
 describe('<CaighdeanTranslation>', () => {
   it('renders the CaighdeanTranslation component properly', () => {
-    const wrapper = shallow(<CaighdeanTranslation />);
+    const { container } = render(<CaighdeanTranslation />);
 
-    expect(wrapper.find('li')).toHaveLength(1);
+    expect(container.querySelectorAll('li')).toHaveLength(1);
     expect(wrapper.find('Localized').props().id).toEqual(
       'machinery-CaighdeanTranslation--translation-source',
     );
-    expect(wrapper.find('li span').text()).toEqual('CAIGHDEAN');
+    expect(wrapper.find('li span').textContent).toEqual('CAIGHDEAN');
   });
 });

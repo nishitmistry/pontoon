@@ -1,4 +1,4 @@
-import { mount } from 'enzyme';
+import { render } from '@testing-library/react';
 import React from 'react';
 import { UserNotification } from './UserNotification';
 import { vi } from 'vitest';
@@ -27,11 +27,12 @@ describe('<UserNotification>', () => {
       ...notificationBase,
       description: { content: 'Unreviewed suggestions: <b id="foo">foo</b>' },
     };
-    const wrapper = mount(<UserNotification notification={notification} />);
+    const { container } = render(
+      <UserNotification notification={notification} />,
+    );
 
-    // https://github.com/enzymejs/enzyme/issues/419
-    const desc = wrapper.find('span.description').render();
-    expect(desc.find('b#foo')).toHaveLength(1);
+    const desc = container.querySelector('span.description');
+    expect(desc.querySelectorAll('b#foo')).toHaveLength(1);
   });
 
   it('shows a "has reviewed suggestions" notification', () => {
@@ -40,11 +41,12 @@ describe('<UserNotification>', () => {
       description: { content: 'Reviewed: <b id="bar">bar</b>' },
       verb: 'has reviewed suggestions',
     };
-    const wrapper = mount(<UserNotification notification={notification} />);
+    const { container } = render(
+      <UserNotification notification={notification} />,
+    );
 
-    // https://github.com/enzymejs/enzyme/issues/419
-    const desc = wrapper.find('span.description').render();
-    expect(desc.find('b#bar')).toHaveLength(1);
+    const desc = container.querySelector('span.description');
+    expect(desc.querySelectorAll('b#bar')).toHaveLength(1);
   });
 
   it('shows a comment notification', () => {
@@ -55,9 +57,11 @@ describe('<UserNotification>', () => {
         is_comment: true,
       },
     };
-    const wrapper = mount(<UserNotification notification={notification} />);
+    const { container } = render(
+      <UserNotification notification={notification} />,
+    );
 
-    expect(wrapper.find('.message.trim b#baz')).toHaveLength(1);
+    expect(container.querySelectorAll('.message.trim b#baz')).toHaveLength(1);
   });
 
   it('shows other notification with description', () => {
@@ -65,11 +69,12 @@ describe('<UserNotification>', () => {
       ...notificationBase,
       description: { content: 'Other: <b id="fuzz">fuzz</b>' },
     };
-    const wrapper = mount(<UserNotification notification={notification} />);
+    const { container } = render(
+      <UserNotification notification={notification} />,
+    );
 
-    // https://github.com/enzymejs/enzyme/issues/419
-    const desc = wrapper.find('.message').render();
-    expect(desc.find('b#fuzz')).toHaveLength(1);
+    const desc = container.querySelector('.message');
+    expect(desc.querySelectorAll('b#fuzz')).toHaveLength(1);
   });
 
   it('shows other notification without description', () => {
@@ -78,9 +83,11 @@ describe('<UserNotification>', () => {
       description: { content: null },
       verb: 'is Other',
     };
-    const wrapper = mount(<UserNotification notification={notification} />);
+    const { container } = render(
+      <UserNotification notification={notification} />,
+    );
 
-    expect(wrapper.find('.message').text()).toBe('');
-    expect(wrapper.find('.verb').text()).toBe('is Other');
+    expect(container.querySelector('.message')).toHaveTextContent('');
+    expect(container.querySelector('.verb')).toHaveTextContent('is Other');
   });
 });

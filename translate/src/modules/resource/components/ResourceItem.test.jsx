@@ -1,11 +1,11 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react';
 
 import { ResourceItem } from './ResourceItem';
 import { ResourcePercent } from './ResourcePercent';
 
 function createShallowResourceItem({ path = 'path' } = {}) {
-  return shallow(
+  return render(
     <ResourceItem
       location={{
         locale: 'locale',
@@ -21,19 +21,22 @@ function createShallowResourceItem({ path = 'path' } = {}) {
 
 describe('<ResourceItem>', () => {
   it('renders correctly', () => {
-    const wrapper = createShallowResourceItem();
-    expect(wrapper.find('li')).toHaveLength(1);
-    expect(wrapper.find('a')).toHaveLength(1);
-    expect(wrapper.find('span')).toHaveLength(1);
+    const { container } = createShallowResourceItem();
+    expect(container.querySelectorAll('li')).toHaveLength(1);
+    expect(container.querySelectorAll('a')).toHaveLength(1);
+    expect(container.querySelectorAll('span')).toHaveLength(1);
     expect(wrapper.find(ResourcePercent)).toHaveLength(1);
-    expect(wrapper.find('a').prop('href')).toEqual('/locale/project/path/');
+    expect(container.querySelector('a')).toHaveAttribute(
+      'href',
+      '/locale/project/path/',
+    );
   });
 
   it('sets the className correctly', () => {
-    let wrapper = createShallowResourceItem();
-    expect(wrapper.find('li.current')).toHaveLength(0);
+    let { container } = createShallowResourceItem();
+    expect(container.querySelectorAll('li.current')).toHaveLength(0);
 
     wrapper = createShallowResourceItem({ path: 'resource' });
-    expect(wrapper.find('li.current')).toHaveLength(1);
+    expect(container.querySelectorAll('li.current')).toHaveLength(1);
   });
 });

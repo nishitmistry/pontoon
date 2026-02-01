@@ -1,9 +1,10 @@
 import ftl from '@fluent/dedent';
 import React from 'react';
-import { mount } from 'enzyme';
+import { render } from '@testing-library/react';
 
 import { editMessageEntry, parseEntry } from '~/utils/message';
 import { RichString } from './RichString';
+import { fireEvent } from '@testing-library/react';
 
 const ORIGINAL = ftl`
   song-title = Hello
@@ -14,20 +15,18 @@ const ORIGINAL = ftl`
 describe('<RichString>', () => {
   it('renders value and each attribute correctly', () => {
     const message = editMessageEntry(parseEntry('fluent', ORIGINAL));
-    const wrapper = mount(<RichString message={message} terms={{}} />);
+    const { container } = render(<RichString message={message} terms={{}} />);
 
     expect(wrapper.find('Highlight')).toHaveLength(3);
 
-    expect(wrapper.find('label').at(0).html()).toContain('Value');
-    expect(wrapper.find('Highlight').at(0).html()).toContain('Hello');
+    expect(container.querySelector('label')[0].html()).toContain('Value');
+    expect(wrapper.find('Highlight')[0].html()).toContain('Hello');
 
-    expect(wrapper.find('label').at(1).html()).toContain('genre');
-    expect(wrapper.find('Highlight').at(1).html()).toContain('Pop');
+    expect(container.querySelector('label')[1].html()).toContain('genre');
+    expect(wrapper.find('Highlight')[1].html()).toContain('Pop');
 
-    expect(wrapper.find('label').at(2).html()).toContain('album');
-    expect(wrapper.find('Highlight').at(2).html()).toContain(
-      'Hello and Good Bye',
-    );
+    expect(container.querySelector('label')[2].html()).toContain('album');
+    expect(wrapper.find('Highlight')[2].html()).toContain('Hello and Good Bye');
   });
 
   it('renders select expression correctly', () => {
@@ -40,15 +39,15 @@ describe('<RichString>', () => {
       `;
 
     const message = editMessageEntry(parseEntry('fluent', input));
-    const wrapper = mount(<RichString message={message} terms={{}} />);
+    const { container } = render(<RichString message={message} terms={{}} />);
 
     expect(wrapper.find('Highlight')).toHaveLength(2);
 
-    expect(wrapper.find('label').at(0).html()).toContain('variant-1');
-    expect(wrapper.find('Highlight').at(0).html()).toContain('Hello!');
+    expect(container.querySelector('label')[0].html()).toContain('variant-1');
+    expect(wrapper.find('Highlight')[0].html()).toContain('Hello!');
 
-    expect(wrapper.find('label').at(1).html()).toContain('variant-2');
-    expect(wrapper.find('Highlight').at(1).html()).toContain('Good Bye!');
+    expect(container.querySelector('label')[1].html()).toContain('variant-2');
+    expect(wrapper.find('Highlight')[1].html()).toContain('Good Bye!');
   });
 
   it('renders select expression in attributes properly', () => {
@@ -67,32 +66,36 @@ describe('<RichString>', () => {
       `;
 
     const message = editMessageEntry(parseEntry('fluent', input));
-    const wrapper = mount(<RichString message={message} terms={{}} />);
+    const { container } = render(<RichString message={message} terms={{}} />);
 
-    expect(wrapper.find('label')).toHaveLength(4);
+    expect(container.querySelectorAll('label')).toHaveLength(4);
     expect(wrapper.find('td > span')).toHaveLength(4);
 
-    expect(wrapper.find('label').at(0).html()).toMatch(/label.*macosx/);
-    expect(wrapper.find('td > span').at(0).html()).toContain('Preferences');
+    expect(container.querySelector('label')[0].html()).toMatch(/label.*macosx/);
+    expect(wrapper.find('td > span')[0].html()).toContain('Preferences');
 
-    expect(wrapper.find('label').at(1).html()).toMatch(/label.*other/);
-    expect(wrapper.find('td > span').at(1).html()).toContain('Options');
+    expect(container.querySelector('label')[1].html()).toMatch(/label.*other/);
+    expect(wrapper.find('td > span')[1].html()).toContain('Options');
 
-    expect(wrapper.find('label').at(2).html()).toMatch(/accesskey.*macosx/);
-    expect(wrapper.find('td > span').at(2).html()).toContain('e');
+    expect(container.querySelector('label')[2].html()).toMatch(
+      /accesskey.*macosx/,
+    );
+    expect(wrapper.find('td > span')[2].html()).toContain('e');
 
-    expect(wrapper.find('label').at(3).html()).toMatch(/accesskey.*other/);
-    expect(wrapper.find('td > span').at(3).html()).toContain('s');
+    expect(container.querySelector('label')[3].html()).toMatch(
+      /accesskey.*other/,
+    );
+    expect(wrapper.find('td > span')[3].html()).toContain('s');
   });
 
   it('calls the onClick function on click on .original', () => {
     const message = editMessageEntry(parseEntry('fluent', ORIGINAL));
     const spy = vi.fn();
-    const wrapper = mount(
+    const { container } = render(
       <RichString message={message} onClick={spy} terms={{}} />,
     );
 
-    wrapper.find('.original').simulate('click');
+    fireEvent.click(container.querySelector('.original'));
     expect(spy).toHaveBeenCalled();
   });
 });

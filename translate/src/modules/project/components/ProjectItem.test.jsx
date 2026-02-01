@@ -1,10 +1,10 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react';
 
 import { ProjectItem } from './ProjectItem';
 
 function createShallowProjectItem({ slug = 'slug' } = {}) {
-  return shallow(
+  return render(
     <ProjectItem
       location={{
         locale: 'locale',
@@ -23,28 +23,28 @@ function createShallowProjectItem({ slug = 'slug' } = {}) {
 
 describe('<ProjectItem>', () => {
   it('renders correctly', () => {
-    const wrapper = createShallowProjectItem();
-    expect(wrapper.find('li')).toHaveLength(1);
-    expect(wrapper.find('a')).toHaveLength(1);
+    const { container } = createShallowProjectItem();
+    expect(container.querySelectorAll('li')).toHaveLength(1);
+    expect(container.querySelectorAll('a')).toHaveLength(1);
     expect(wrapper.find('span.project')).toHaveLength(1);
     expect(wrapper.find('span.percent')).toHaveLength(1);
-    expect(wrapper.find('a').prop('href')).toEqual(
+    expect(container.querySelector('a').prop('href')).toEqual(
       '/locale/slug/all-resources/',
     );
   });
 
   it('sets the className for the current project', () => {
-    const wrapper = createShallowProjectItem({ slug: 'project' });
+    const { container } = createShallowProjectItem({ slug: 'project' });
     expect(wrapper.find('li.current')).toHaveLength(1);
   });
 
   it('sets the className for another project', () => {
-    const wrapper = createShallowProjectItem();
+    const { container } = createShallowProjectItem();
     expect(wrapper.find('li.current')).toHaveLength(0);
   });
 
   it('renders completion percentage correctly', () => {
-    const wrapper = createShallowProjectItem();
-    expect(wrapper.find('.percent').text()).toEqual('50%');
+    const { container } = createShallowProjectItem();
+    expect(wrapper.find('.percent').textContent).toEqual('50%');
   });
 });

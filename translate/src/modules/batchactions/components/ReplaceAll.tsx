@@ -17,7 +17,11 @@ export function ReplaceAll({
   batchactions: { response, requestInProgress },
 }: Props): React.ReactElement<'button'> {
   return (
-    <button className='replace-all' onClick={replaceAll}>
+    <button
+      data-testid='replace-all'
+      className='replace-all'
+      onClick={replaceAll}
+    >
       <Title {...response} />
       {requestInProgress !== 'replace' ? null : (
         <i className='fas fa-2x fa-circle-notch fa-spin'></i>

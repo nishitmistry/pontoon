@@ -78,14 +78,12 @@ describe('<SearchPanelDialog>', () => {
 
 describe('<SearchPanel>', () => {
   it('shows a panel with options on click', () => {
-    const wrapper = render(
+    const { container, queryAllByTestId } = render(
       <SearchPanel searchOptions={selectedSearchOptions} />,
     );
 
-    expect(
-      wrapper.queryByTestId('search-panel-dialog'),
-    ).not.toBeInTheDocument();
-    fireEvent.click(wrapper.container.querySelector('.visibility-switch'));
-    expect(wrapper.queryByTestId('search-panel-dialog')).toBeInTheDocument();
+    expect(queryAllByTestId('search-panel-dialog')).toHaveLength(0);
+    fireEvent.click(container.querySelector('.visibility-switch'));
+    expect(queryAllByTestId('search-panel-dialog')).toHaveLength(1);
   });
 });

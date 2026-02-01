@@ -1,4 +1,4 @@
-import { mount } from 'enzyme';
+import { render } from '@testing-library/react';
 import { createMemoryHistory } from 'history';
 import React from 'react';
 import { act } from 'react-dom/test-utils';
@@ -14,6 +14,7 @@ import { EditorMenu } from './EditorMenu';
 import { EditorSettings } from './EditorSettings';
 import { KeyboardShortcuts } from './KeyboardShortcuts';
 import { TranslationLength } from './TranslationLength';
+import { expect } from 'vitest';
 
 const SELECTED_ENTITY = {
   pk: 1,
@@ -35,7 +36,7 @@ function createEditorMenu({
     initialEntries: ['/kg/firefox/all-resources/'],
   });
 
-  const wrapper = mount(
+  const wrapper = render(
     <Provider store={store}>
       <LocationProvider history={history}>
         <MockLocalizationProvider>
@@ -48,31 +49,43 @@ function createEditorMenu({
   );
 
   act(() => history.push(`?string=1`));
-  wrapper.update();
 
   return wrapper;
 }
 
 function expectHiddenSettingsAndActions(wrapper) {
-  expect(wrapper.find('button')).toHaveLength(0);
-  expect(wrapper.find(EditorSettings)).toHaveLength(0);
-  expect(wrapper.find(KeyboardShortcuts)).toHaveLength(0);
-  expect(wrapper.find(TranslationLength)).toHaveLength(0);
-  expect(wrapper.find('#editor-EditorMenu--button-copy')).toHaveLength(0);
+  expect(wrapper.container.querySelectorAll('button')).toHaveLength(0);
+  expect(wrapper.queryAllByTestId('editor-settings')).toHaveLength(0);
+  expect(wrapper.queryAllByTestId('keyboard-shortcuts')).toHaveLength(0);
+  expect(wrapper.queryAllByTestId('translation-lenght')).toHaveLength(0);
+  expect(
+    wrapper.queryAllByTestId('editor-EditorMenu--button-copy'),
+  ).toHaveLength(0);
 }
 
 describe('<EditorMenu>', () => {
+  beforeAll(() => {
+
+  vi.mock('@fluent/react', async (importOriginal) => {
+    const actual = await importOriginal();
+    return {
+      ...actual,
+      Localized: ({ id, children }) => <div data-testid={id}>{children}</div>,
+    };
+  });
+
+});
   it('does not render while loading', () => {
-    const wrapper = createEditorMenu({ isAuthenticated: null });
-    expect(wrapper.find('EditorMenu').isEmptyRender()).toBeTruthy();
+    const { queryByTestId } = createEditorMenu({ isAuthenticated: null });
+    expect(queryByTestId('editor-menu')).toBeEmptyDOMElement();
   });
 
   it('renders correctly', () => {
-    const wrapper = createEditorMenu();
+    const { container } = createEditorMenu();
 
     // 3 buttons to control the editor.
-    expect(wrapper.find('.action-copy').exists()).toBeTruthy();
-    expect(wrapper.find('.action-clear').exists()).toBeTruthy();
+    expect(container.querySelector('.action-copy')).toBeInTheDocument();
+    expect(container.querySelector('.action-clear')).toBeInTheDocument();
     expect(wrapper.find('EditorMainAction')).toHaveLength(1);
   });
 
@@ -82,18 +95,18 @@ describe('<EditorMenu>', () => {
     expectHiddenSettingsAndActions(wrapper);
 
     expect(
-      wrapper.find('#editor-EditorMenu--sign-in-to-translate'),
+      wrapper.queryAllByTestId('editor-EditorMenu--sign-in-to-translate'),
     ).toHaveLength(1);
   });
 
   it('hides the settings and actions when the entity is read-only', () => {
     const entity = { ...SELECTED_ENTITY, readonly: true };
-    const wrapper = createEditorMenu({ entity });
+    const wrapper= createEditorMenu({ entity });
 
     expectHiddenSettingsAndActions(wrapper);
 
     expect(
-      wrapper.find('#editor-EditorMenu--read-only-localization'),
+      wrapper.queryAllByTestId('editor-EditorMenu--read-only-localization'),
     ).toHaveLength(1);
   });
 });

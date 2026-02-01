@@ -1,4 +1,4 @@
-import { mount } from 'enzyme';
+import { render } from '@testing-library/react';
 import React from 'react';
 import { act } from 'react-dom/test-utils';
 
@@ -16,7 +16,7 @@ describe('<AppLocalizationProvider>', () => {
 
   it('fetches a locale when the component mounts', async () => {
     api.fetchL10n.mockResolvedValue('');
-    mount(
+    render(
       <AppLocalizationProvider>
         <div />
       </AppLocalizationProvider>,
@@ -28,16 +28,15 @@ describe('<AppLocalizationProvider>', () => {
 
   it('renders messages and children when loaded', async () => {
     api.fetchL10n.mockResolvedValue('key = message\n');
-    const wrapper = mount(
+    const { container } = render(
       <AppLocalizationProvider>
         <div id='test' />
       </AppLocalizationProvider>,
     );
     await act(() => new Promise((resolve) => setTimeout(resolve)));
-    wrapper.update();
 
     const localization = wrapper.find('LocalizationProvider').prop('l10n');
     expect(localization.getString('key')).toEqual('message');
-    expect(wrapper.find('#test')).toHaveLength(1);
+    expect(container.querySelectorAll('#test')).toHaveLength(1);
   });
 });

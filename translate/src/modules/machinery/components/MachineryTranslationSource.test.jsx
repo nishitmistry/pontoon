@@ -1,5 +1,5 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react';
 
 import { MachineryTranslationSource } from './MachineryTranslationSource';
 
@@ -19,7 +19,7 @@ describe('<MachineryTranslationSource>', () => {
       const translation = {
         sources: [type],
       };
-      const wrapper = shallow(
+      const { container } = render(
         <MachineryTranslationSource translation={translation} />,
       );
 
@@ -31,7 +31,7 @@ describe('<MachineryTranslationSource>', () => {
     const translation = {
       sources: [...DEFAULT_TRANSLATION.sources, 'microsoft-terminology'],
     };
-    const wrapper = shallow(
+    const { container } = render(
       <MachineryTranslationSource translation={translation} />,
     );
 

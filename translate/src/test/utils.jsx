@@ -3,7 +3,7 @@ import {
   Localized,
   ReactLocalization,
 } from '@fluent/react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react';
 import React from 'react';
 import { vi } from 'vitest';
 
@@ -13,7 +13,7 @@ import { vi } from 'vitest';
  */
 
 /*
- * Repeatedly render a component tree using enzyme.shallow() until
+ * Repeatedly render a component tree using enzyme.render() until
  * finding and rendering TargetComponent.
  *
  * This is useful for testing a component wrapped in one or more
@@ -37,7 +37,7 @@ export function shallowUntilTarget(
     throw new Error('TargetComponent parameter is required');
   }
 
-  let root = _shallow(componentInstance, shallowOptions);
+  let root = _render(componentInstance, shallowOptions);
 
   if (typeof root.type() === 'string') {
     // If type() is a string then it's a DOM Node.
@@ -48,7 +48,7 @@ export function shallowUntilTarget(
   for (let tries = 1; tries <= maxTries; tries++) {
     if (root.is(TargetComponent)) {
       // Now that we found the target component, render it.
-      return root.shallow(shallowOptions);
+      return root.render(shallowOptions);
     }
     // Unwrap the next component in the hierarchy.
     root = root.dive();

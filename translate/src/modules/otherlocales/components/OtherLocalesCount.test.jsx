@@ -1,5 +1,5 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react';
 
 import { OtherLocalesCount } from './OtherLocalesCount';
 
@@ -21,15 +21,17 @@ describe('<OtherLocalesCount>', () => {
         },
       ],
     };
-    const wrapper = shallow(<OtherLocalesCount otherlocales={otherlocales} />);
+    const { container } = render(
+      <OtherLocalesCount otherlocales={otherlocales} />,
+    );
 
     // There are only preferred results.
-    expect(wrapper.find('.count > span')).toHaveLength(1);
+    expect(container.querySelectorAll('.count > span')).toHaveLength(1);
 
     // And there are two of them.
-    expect(wrapper.find('.preferred').text()).toContain('2');
+    expect(wrapper.find('.preferred')).toHaveTextContent('2');
 
-    expect(wrapper.text()).not.toContain('+');
+    expect(wrapper.textContent).not.toContain('+');
   });
 
   it('shows the correct number of other translations', () => {
@@ -52,16 +54,18 @@ describe('<OtherLocalesCount>', () => {
         },
       ],
     };
-    const wrapper = shallow(<OtherLocalesCount otherlocales={otherlocales} />);
+    const { container } = render(
+      <OtherLocalesCount otherlocales={otherlocales} />,
+    );
 
     // There are only remaining results.
-    expect(wrapper.find('.count > span')).toHaveLength(1);
-    expect(wrapper.find('.preferred')).toHaveLength(0);
+    expect(container.querySelectorAll('.count > span')).toHaveLength(1);
+    expect(container.querySelectorAll('.preferred')).toHaveLength(0);
 
     // And there are three of them.
-    expect(wrapper.find('.count > span').text()).toContain('3');
+    expect(wrapper.find('.count > span')).toHaveTextContent('3');
 
-    expect(wrapper.text()).not.toContain('+');
+    expect(wrapper.textContent).not.toContain('+');
   });
 
   it('shows the correct numbers of preferred and other translations', () => {
@@ -96,16 +100,18 @@ describe('<OtherLocalesCount>', () => {
         },
       ],
     };
-    const wrapper = shallow(<OtherLocalesCount otherlocales={otherlocales} />);
+    const { container } = render(
+      <OtherLocalesCount otherlocales={otherlocales} />,
+    );
 
     // There are both preferred and remaining, and the '+' sign.
-    expect(wrapper.find('.count > span')).toHaveLength(3);
+    expect(container.querySelectorAll('.count > span')).toHaveLength(3);
 
     // And each count is correct.
-    expect(wrapper.find('.preferred').text()).toContain('2');
-    expect(wrapper.find('.count > span').last().text()).toContain('3');
+    expect(wrapper.find('.preferred')).toHaveTextContent('2');
+    expect(wrapper.find('.count > span').last()).toHaveTextContent('3');
 
     // And the final display is correct as well.
-    expect(wrapper.text()).toEqual('2+3');
+    expect(wrapper.textContent).toEqual('2+3');
   });
 });

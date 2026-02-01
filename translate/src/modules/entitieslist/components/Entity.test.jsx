@@ -1,9 +1,10 @@
-import { mount, shallow } from 'enzyme';
+import { render } from '@testing-library/react';
 import React from 'react';
 
 import * as hookModule from '~/hooks/useTranslator';
 import { Entity } from './Entity';
 import { vitest } from 'vitest';
+import { fireEvent } from '@testing-library/react';
 
 beforeAll(() => {
   vitest.mock('~/hooks/useTranslator', () => ({
@@ -63,7 +64,7 @@ describe('<Entity>', () => {
   };
 
   it('renders the source string and the first translation', () => {
-    const wrapper = shallow(<Entity entity={ENTITY_A} parameters={{}} />);
+    const { container } = render(<Entity entity={ENTITY_A} parameters={{}} />);
 
     const contents = wrapper.find('Translation');
     expect(contents.first().props().content).toContain(ENTITY_A.original);
@@ -73,39 +74,39 @@ describe('<Entity>', () => {
   });
 
   it('shows the correct status class', () => {
-    let wrapper = shallow(<Entity entity={ENTITY_A} parameters={{}} />);
-    expect(wrapper.find('.approved')).toHaveLength(1);
+    let wrapper = render(<Entity entity={ENTITY_A} parameters={{}} />);
+    expect(container.querySelectorAll('.approved')).toHaveLength(1);
 
-    wrapper = shallow(<Entity entity={ENTITY_B} parameters={{}} />);
-    expect(wrapper.find('.pretranslated')).toHaveLength(1);
+    wrapper = render(<Entity entity={ENTITY_B} parameters={{}} />);
+    expect(container.querySelectorAll('.pretranslated')).toHaveLength(1);
 
-    wrapper = shallow(<Entity entity={ENTITY_C} parameters={{}} />);
-    expect(wrapper.find('.missing')).toHaveLength(1);
+    wrapper = render(<Entity entity={ENTITY_C} parameters={{}} />);
+    expect(container.querySelectorAll('.missing')).toHaveLength(1);
 
-    wrapper = shallow(<Entity entity={ENTITY_D} parameters={{}} />);
-    expect(wrapper.find('.errors')).toHaveLength(1);
+    wrapper = render(<Entity entity={ENTITY_D} parameters={{}} />);
+    expect(container.querySelectorAll('.errors')).toHaveLength(1);
 
-    wrapper = shallow(<Entity entity={ENTITY_E} parameters={{}} />);
-    expect(wrapper.find('.warnings')).toHaveLength(1);
+    wrapper = render(<Entity entity={ENTITY_E} parameters={{}} />);
+    expect(container.querySelectorAll('.warnings')).toHaveLength(1);
   });
 
   it('calls the selectEntity function on click on li', () => {
     const selectEntityFn = vi.fn();
-    const wrapper = mount(
+    const { container } = render(
       <Entity
         entity={ENTITY_A}
         selectEntity={selectEntityFn}
         parameters={{}}
       />,
     );
-    wrapper.find('li').simulate('click');
+    fireEvent.click(container.querySelector('li'));
     expect(selectEntityFn).toHaveBeenCalledOnce();
   });
 
   it('calls the toggleForBatchEditing function on click on .status', () => {
     hookModule.useTranslator.mockReturnValue(true);
     const toggleForBatchEditingFn = vi.fn();
-    const wrapper = mount(
+    const { container } = render(
       <Entity
         entity={ENTITY_A}
         isReadOnlyEditor={false}
@@ -113,14 +114,14 @@ describe('<Entity>', () => {
         parameters={{}}
       />,
     );
-    wrapper.find('.status').simulate('click');
+    fireEvent.click(container.querySelector('.status'));
     expect(toggleForBatchEditingFn).toHaveBeenCalledOnce();
   });
 
   it('does not call the toggleForBatchEditing function if user not translator', () => {
     const toggleForBatchEditingFn = vi.fn();
     const selectEntityFn = vi.fn();
-    const wrapper = mount(
+    const { container } = render(
       <Entity
         entity={ENTITY_A}
         isReadOnlyEditor={false}
@@ -129,14 +130,14 @@ describe('<Entity>', () => {
         parameters={{}}
       />,
     );
-    wrapper.find('.status').simulate('click');
+    fireEvent.click(container.querySelector('.status'));
     expect(toggleForBatchEditingFn).not.toHaveBeenCalled();
   });
 
   it('does not call the toggleForBatchEditing function if read-only editor', () => {
     const toggleForBatchEditingFn = vi.fn();
     const selectEntityFn = vi.fn();
-    const wrapper = mount(
+    const { container } = render(
       <Entity
         entity={ENTITY_A}
         isReadOnlyEditor={true}
@@ -145,7 +146,7 @@ describe('<Entity>', () => {
         parameters={{}}
       />,
     );
-    wrapper.find('.status').simulate('click');
+    fireEvent.click(container.querySelector('.status'));
     expect(toggleForBatchEditingFn).not.toHaveBeenCalled();
   });
 });

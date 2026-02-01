@@ -162,7 +162,12 @@ export function UserNotification({
   );
 
   return (
-    <li className={className} data-id={id} data-level={level}>
+    <li
+      className={className}
+      data-id={id}
+      data-level={level}
+      data-testid='user-notification'
+    >
       {isSuggestion ? (
         <Suggestion {...notification} />
       ) : isComment ? (

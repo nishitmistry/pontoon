@@ -1,10 +1,11 @@
-import { mount } from 'enzyme';
+import { render } from '@testing-library/react';
 import React from 'react';
 
 import { MockLocalizationProvider } from '~/test/utils';
 
 import { RejectAll } from './RejectAll';
 import { vi } from 'vitest';
+import { fireEvent } from '@testing-library/react';
 
 const DEFAULT_BATCH_ACTIONS = {
   entities: [],
@@ -18,23 +19,30 @@ const WrapRejectAll = (props) => (
     <RejectAll {...props} />
   </MockLocalizationProvider>
 );
+vi.mock('@fluent/react', async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    Localized: ({ id, children }) => <div data-testid={id}>{children}</div>,
+  };
+});
 
 describe('<RejectAll>', () => {
   it('renders default button correctly', () => {
-    const wrapper = mount(
+    const { container, queryAllByTestId } = render(
       <WrapRejectAll batchactions={DEFAULT_BATCH_ACTIONS} />,
     );
 
-    expect(wrapper.find('.reject-all')).toHaveLength(1);
-    expect(wrapper.find('#batchactions-RejectAll--default')).toHaveLength(1);
-    expect(wrapper.find('#batchactions-RejectAll--error')).toHaveLength(0);
-    expect(wrapper.find('#batchactions-RejectAll--success')).toHaveLength(0);
-    expect(wrapper.find('#batchactions-RejectAll--invalid')).toHaveLength(0);
-    expect(wrapper.find('.fas')).toHaveLength(0);
+    expect(container.querySelectorAll('.reject-all')).toHaveLength(1);
+    expect(queryAllByTestId('batchactions-RejectAll--default')).toHaveLength(1);
+    expect(queryAllByTestId('batchactions-RejectAll--error')).toHaveLength(0);
+    expect(queryAllByTestId('batchactions-RejectAll--success')).toHaveLength(0);
+    expect(queryAllByTestId('batchactions-RejectAll--invalid')).toHaveLength(0);
+    expect(container.querySelectorAll('.fas')).toHaveLength(0);
   });
 
   it('renders error button correctly', () => {
-    const wrapper = mount(
+    const { container, queryAllByTestId } = render(
       <WrapRejectAll
         batchactions={{
           ...DEFAULT_BATCH_ACTIONS,
@@ -46,16 +54,16 @@ describe('<RejectAll>', () => {
       />,
     );
 
-    expect(wrapper.find('.reject-all')).toHaveLength(1);
-    expect(wrapper.find('#batchactions-RejectAll--default')).toHaveLength(0);
-    expect(wrapper.find('#batchactions-RejectAll--error')).toHaveLength(1);
-    expect(wrapper.find('#batchactions-RejectAll--success')).toHaveLength(0);
-    expect(wrapper.find('#batchactions-RejectAll--invalid')).toHaveLength(0);
-    expect(wrapper.find('.fas')).toHaveLength(0);
+    expect(container.querySelectorAll('.reject-all')).toHaveLength(1);
+    expect(queryAllByTestId('batchactions-RejectAll--default')).toHaveLength(0);
+    expect(queryAllByTestId('batchactions-RejectAll--error')).toHaveLength(1);
+    expect(queryAllByTestId('batchactions-RejectAll--success')).toHaveLength(0);
+    expect(queryAllByTestId('batchactions-RejectAll--invalid')).toHaveLength(0);
+    expect(container.querySelectorAll('.fas')).toHaveLength(0);
   });
 
   it('renders success button correctly', () => {
-    const wrapper = mount(
+    const { container, queryAllByTestId } = render(
       <WrapRejectAll
         batchactions={{
           ...DEFAULT_BATCH_ACTIONS,
@@ -67,16 +75,16 @@ describe('<RejectAll>', () => {
       />,
     );
 
-    expect(wrapper.find('.reject-all')).toHaveLength(1);
-    expect(wrapper.find('#batchactions-RejectAll--default')).toHaveLength(0);
-    expect(wrapper.find('#batchactions-RejectAll--error')).toHaveLength(0);
-    expect(wrapper.find('#batchactions-RejectAll--success')).toHaveLength(1);
-    expect(wrapper.find('#batchactions-RejectAll--invalid')).toHaveLength(0);
-    expect(wrapper.find('.fas')).toHaveLength(0);
+    expect(container.querySelectorAll('.reject-all')).toHaveLength(1);
+    expect(queryAllByTestId('batchactions-RejectAll--default')).toHaveLength(0);
+    expect(queryAllByTestId('batchactions-RejectAll--error')).toHaveLength(0);
+    expect(queryAllByTestId('batchactions-RejectAll--success')).toHaveLength(1);
+    expect(queryAllByTestId('batchactions-RejectAll--invalid')).toHaveLength(0);
+    expect(container.querySelectorAll('.fas')).toHaveLength(0);
   });
 
   it('renders success with invalid button correctly', () => {
-    const wrapper = mount(
+    const { container, queryAllByTestId } = render(
       <WrapRejectAll
         batchactions={{
           ...DEFAULT_BATCH_ACTIONS,
@@ -89,35 +97,35 @@ describe('<RejectAll>', () => {
       />,
     );
 
-    expect(wrapper.find('.reject-all')).toHaveLength(1);
-    expect(wrapper.find('#batchactions-RejectAll--default')).toHaveLength(0);
-    expect(wrapper.find('#batchactions-RejectAll--error')).toHaveLength(0);
-    expect(wrapper.find('#batchactions-RejectAll--success')).toHaveLength(1);
-    expect(wrapper.find('#batchactions-RejectAll--invalid')).toHaveLength(1);
-    expect(wrapper.find('.fas')).toHaveLength(0);
+    expect(container.querySelectorAll('.reject-all')).toHaveLength(1);
+    expect(queryAllByTestId('batchactions-RejectAll--default')).toHaveLength(0);
+    expect(queryAllByTestId('batchactions-RejectAll--error')).toHaveLength(0);
+    expect(queryAllByTestId('batchactions-RejectAll--success')).toHaveLength(1);
+    expect(queryAllByTestId('batchactions-RejectAll--invalid')).toHaveLength(1);
+    expect(container.querySelectorAll('.fas')).toHaveLength(0);
   });
 
   it('raise confirmation warning when Reject All button is clicked', () => {
     const mockRejectAll = vi.fn();
 
-    const wrapper = mount(
+    const { container, queryAllByTestId } = render(
       <WrapRejectAll
         batchactions={DEFAULT_BATCH_ACTIONS}
         rejectAll={mockRejectAll}
       />,
     );
 
-    wrapper.find('.reject-all').simulate('click');
+    fireEvent.click(container.querySelector('.reject-all'));
     expect(mockRejectAll).not.toHaveBeenCalled();
-    expect(wrapper.find('#batchactions-RejectAll--confirmation')).toHaveLength(
-      1,
-    );
+    expect(
+      queryAllByTestId('batchactions-RejectAll--confirmation'),
+    ).toHaveLength(1);
   });
 
   it('performs reject all action when Reject All button is confirmed', () => {
     const mockRejectAll = vi.fn();
 
-    const wrapper = mount(
+    const { container } = render(
       <WrapRejectAll
         batchactions={DEFAULT_BATCH_ACTIONS}
         rejectAll={mockRejectAll}
@@ -125,8 +133,8 @@ describe('<RejectAll>', () => {
     );
 
     expect(mockRejectAll).not.toHaveBeenCalled();
-    wrapper.find('.reject-all').simulate('click');
-    wrapper.find('.reject-all').simulate('click');
+    fireEvent.click(container.querySelector('.reject-all'));
+    fireEvent.click(container.querySelector('.reject-all'));
     expect(mockRejectAll).toHaveBeenCalled();
   });
 });

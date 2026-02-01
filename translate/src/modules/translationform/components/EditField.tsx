@@ -128,6 +128,7 @@ export const EditField = memo(
 
       return (
         <div
+          data-testid='edit-field'
           className={readOnly ? 'readonly' : undefined}
           ref={initView}
           data-script={locale.script}

@@ -28,7 +28,7 @@ export function ProjectItem({
     '%';
 
   return (
-    <li className={className}>
+    <li className={className} data-testid="project-item">
       <a href={`/${locale}/${slug}/all-resources/`} onClick={navigateToPath}>
         <span className='project' title={name}>
           {name}

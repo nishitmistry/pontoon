@@ -19,7 +19,7 @@ export function TranslationLength(): React.ReactElement<'div'> | null {
   const srcText = getPlainMessage(entity.original, entity.format);
 
   return (
-    <div className='translation-length'>
+    <div className='translation-length' data-testid="translation-lenght">
       <div className='translation-vs-original'>
         <span>{text.length}</span>|<span>{srcText.length}</span>
       </div>

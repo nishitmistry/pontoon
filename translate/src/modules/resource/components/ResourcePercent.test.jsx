@@ -1,7 +1,8 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react';
 
 import { ResourcePercent } from './ResourcePercent';
+import { MockLocalizationProvider } from '../../../test/utils';
 
 describe('<ResourcePercent>', () => {
   const RESOURCE = {
@@ -12,7 +13,11 @@ describe('<ResourcePercent>', () => {
   };
 
   it('renders correctly', () => {
-    const wrapper = shallow(<ResourcePercent resource={RESOURCE} />);
-    expect(wrapper.find('.percent').text()).toEqual('50%');
+    const { container } = render(
+      <MockLocalizationProvider>
+        <ResourcePercent resource={RESOURCE} />
+      </MockLocalizationProvider>,
+    );
+    expect(container.querySelector('.percent')).toHaveTextContent('50%');
   });
 });

@@ -65,7 +65,7 @@ export function ProjectMenuDialog({
     .sort(sortBy(sortActive, sortAsc));
 
   return (
-    <div ref={ref} className='menu'>
+    <div ref={ref} className='menu' data-testid="project-menu-dialog">
       <div className='search-wrapper'>
         <div className='icon fas fa-search'></div>
         <Localized

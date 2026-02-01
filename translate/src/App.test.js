@@ -1,7 +1,7 @@
 // import React from 'react';
 // import ReactDOM from 'react-dom';
 
-// import { shallow } from 'enzyme';
+// import { render } from '@testing-library/react';
 // import sinon from 'sinon';
 
 // import { App } from './App';
@@ -15,7 +15,7 @@ describe('<App>', () => {
     // store.dispatch = sinon.fake();
     //
     // const div = document.createElement('div');
-    // ReactDOM.render(shallow(<App store={ store } />), div);
+    // ReactDOM.render(render(<App store={ store } />), div);
     // ReactDOM.unmountComponentAtNode(div);
   });
 });

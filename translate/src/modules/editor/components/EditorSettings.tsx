@@ -101,7 +101,7 @@ export function EditorSettings({
   );
 
   return (
-    <div className='editor-settings'>
+    <div className='editor-settings' data-testid="editor-settings">
       <div
         className='selector fas fa-cog'
         title='Settings'

@@ -27,6 +27,7 @@ export function FileUpload({ parameters }: Props): React.ReactElement<'form'> {
       encType='multipart/form-data'
       method='POST'
       ref={uploadForm}
+      data-testid='file-upload'
     >
       <CSRFToken />
       <input name='code' type='hidden' value={parameters.locale} />

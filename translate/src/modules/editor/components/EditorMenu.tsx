@@ -27,7 +27,7 @@ import { TranslationLength } from './TranslationLength';
  */
 export function EditorMenu(): React.ReactElement<'menu'> {
   return (
-    <menu className='editor-menu'>
+    <menu className='editor-menu' data-testid='editor-menu'>
       <FtlSwitch />
       <FailedChecks />
       <UnsavedChangesPopup />

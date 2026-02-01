@@ -1,13 +1,27 @@
-import { shallow } from 'enzyme';
+import { fireEvent, render } from '@testing-library/react';
 import React from 'react';
 
 import * as hookModule from '~/hooks/useTranslator';
 import { HistoryTranslationBase } from './HistoryTranslation';
+import { MockLocalizationProvider } from '../../../test/utils';
 
 beforeAll(() => {
   vitest.mock('~/hooks/useTranslator', () => ({
     useTranslator: vi.fn(() => false),
   }));
+
+  vi.mock('react-time-ago', () => {
+    return {
+      default: () => null,
+    };
+  });
+  vi.mock('@fluent/react', async (importOriginal) => {
+    const actual = await importOriginal();
+    return {
+      ...actual,
+      Localized: ({ id, children }) => <div data-testid={id}>{children}</div>,
+    };
+  });
 });
 
 afterAll(() => {
@@ -29,6 +43,7 @@ describe('<HistoryTranslationComponent>', () => {
     user: '',
     username: 'michel',
     comments: [],
+    userBanner: [],
   };
 
   const DEFAULT_USER = {
@@ -38,6 +53,26 @@ describe('<HistoryTranslationComponent>', () => {
   const DEFAULT_ENTITY = {
     format: 'gettext',
   };
+  function renderHistoryTranslationBase(
+    translation,
+    entity,
+    user,
+    activeTranslation,
+    index,
+  ) {
+    return render(
+      <MockLocalizationProvider>
+        <HistoryTranslationBase
+          translation={translation}
+          entity={entity}
+          user={user}
+          activeTranslation={activeTranslation}
+          index={index}
+        />
+        ,
+      </MockLocalizationProvider>,
+    );
+  }
 
   describe('getStatus', () => {
     it('returns the correct status for approved translations', () => {
@@ -45,15 +80,13 @@ describe('<HistoryTranslationComponent>', () => {
         ...DEFAULT_TRANSLATION,
         ...{ approved: true },
       };
-      const wrapper = shallow(
-        <HistoryTranslationBase
-          translation={translation}
-          entity={DEFAULT_ENTITY}
-          user={DEFAULT_USER}
-        />,
+      const { container } = renderHistoryTranslationBase(
+        translation,
+        DEFAULT_ENTITY,
+        DEFAULT_USER,
       );
 
-      expect(wrapper.find('.approved')).toHaveLength(1);
+      expect(container.querySelectorAll('.approved')).toHaveLength(1);
     });
 
     it('returns the correct status for rejected translations', () => {
@@ -61,15 +94,13 @@ describe('<HistoryTranslationComponent>', () => {
         ...DEFAULT_TRANSLATION,
         ...{ rejected: true },
       };
-      const wrapper = shallow(
-        <HistoryTranslationBase
-          translation={translation}
-          entity={DEFAULT_ENTITY}
-          user={DEFAULT_USER}
-        />,
+      const { container } = renderHistoryTranslationBase(
+        translation,
+        DEFAULT_ENTITY,
+        DEFAULT_USER,
       );
 
-      expect(wrapper.find('.rejected')).toHaveLength(1);
+      expect(container.querySelectorAll('.rejected')).toHaveLength(1);
     });
 
     it('returns the correct status for pretranslated translations', () => {
@@ -77,15 +108,13 @@ describe('<HistoryTranslationComponent>', () => {
         ...DEFAULT_TRANSLATION,
         ...{ pretranslated: true },
       };
-      const wrapper = shallow(
-        <HistoryTranslationBase
-          translation={translation}
-          entity={DEFAULT_ENTITY}
-          user={DEFAULT_USER}
-        />,
+      const { container } = renderHistoryTranslationBase(
+        translation,
+        DEFAULT_ENTITY,
+        DEFAULT_USER,
       );
 
-      expect(wrapper.find('.pretranslated')).toHaveLength(1);
+      expect(container.querySelectorAll('.pretranslated')).toHaveLength(1);
     });
 
     it('returns the correct status for fuzzy translations', () => {
@@ -93,27 +122,23 @@ describe('<HistoryTranslationComponent>', () => {
         ...DEFAULT_TRANSLATION,
         ...{ fuzzy: true },
       };
-      const wrapper = shallow(
-        <HistoryTranslationBase
-          translation={translation}
-          entity={DEFAULT_ENTITY}
-          user={DEFAULT_USER}
-        />,
+      const { container } = renderHistoryTranslationBase(
+        translation,
+        DEFAULT_ENTITY,
+        DEFAULT_USER,
       );
 
-      expect(wrapper.find('.fuzzy')).toHaveLength(1);
+      expect(container.querySelectorAll('.fuzzy')).toHaveLength(1);
     });
 
     it('returns the correct status for unreviewed translations', () => {
-      const wrapper = shallow(
-        <HistoryTranslationBase
-          translation={DEFAULT_TRANSLATION}
-          entity={DEFAULT_ENTITY}
-          user={DEFAULT_USER}
-        />,
+      const { container } = renderHistoryTranslationBase(
+        DEFAULT_TRANSLATION,
+        DEFAULT_ENTITY,
+        DEFAULT_USER,
       );
 
-      expect(wrapper.find('.unreviewed')).toHaveLength(1);
+      expect(container.querySelectorAll('.unreviewed')).toHaveLength(1);
     });
   });
 
@@ -123,17 +148,13 @@ describe('<HistoryTranslationComponent>', () => {
         ...DEFAULT_TRANSLATION,
         ...{ approved: true, approvedUser: 'Cespenar' },
       };
-      const wrapper = shallow(
-        <HistoryTranslationBase
-          translation={translation}
-          entity={DEFAULT_ENTITY}
-          user={DEFAULT_USER}
-        />,
+      const { queryAllByTestId } = renderHistoryTranslationBase(
+        translation,
+        DEFAULT_ENTITY,
+        DEFAULT_USER,
       );
 
-      expect(wrapper.find('[id="history-translation--approved"]')).toHaveLength(
-        2,
-      );
+      expect(queryAllByTestId('history-translation--approved')).toHaveLength(2);
     });
 
     it('returns the correct review title when approved and approved user is not available', () => {
@@ -141,16 +162,14 @@ describe('<HistoryTranslationComponent>', () => {
         ...DEFAULT_TRANSLATION,
         ...{ approved: true },
       };
-      const wrapper = shallow(
-        <HistoryTranslationBase
-          translation={translation}
-          entity={DEFAULT_ENTITY}
-          user={DEFAULT_USER}
-        />,
+      const { queryAllByTestId } = renderHistoryTranslationBase(
+        translation,
+        DEFAULT_ENTITY,
+        DEFAULT_USER,
       );
 
       expect(
-        wrapper.find('[id="history-translation--approved-anonymous"]'),
+        queryAllByTestId('history-translation--approved-anonymous'),
       ).toHaveLength(2);
     });
 
@@ -159,17 +178,13 @@ describe('<HistoryTranslationComponent>', () => {
         ...DEFAULT_TRANSLATION,
         ...{ rejected: true, rejectedUser: 'Bhaal' },
       };
-      const wrapper = shallow(
-        <HistoryTranslationBase
-          translation={translation}
-          entity={DEFAULT_ENTITY}
-          user={DEFAULT_USER}
-        />,
+      const { queryAllByTestId } = renderHistoryTranslationBase(
+        translation,
+        DEFAULT_ENTITY,
+        DEFAULT_USER,
       );
 
-      expect(wrapper.find('[id="history-translation--rejected"]')).toHaveLength(
-        2,
-      );
+      expect(queryAllByTestId('history-translation--rejected')).toHaveLength(2);
     });
 
     it('returns the correct review title when rejected and rejected user is not available', () => {
@@ -177,31 +192,27 @@ describe('<HistoryTranslationComponent>', () => {
         ...DEFAULT_TRANSLATION,
         ...{ rejected: true },
       };
-      const wrapper = shallow(
-        <HistoryTranslationBase
-          translation={translation}
-          entity={DEFAULT_ENTITY}
-          user={DEFAULT_USER}
-        />,
+      const { queryAllByTestId } = renderHistoryTranslationBase(
+        translation,
+        DEFAULT_ENTITY,
+        DEFAULT_USER,
       );
 
       expect(
-        wrapper.find('[id="history-translation--rejected-anonymous"]'),
+        queryAllByTestId('history-translation--rejected-anonymous'),
       ).toHaveLength(2);
     });
 
     it('returns the correct approver title when neither approved or rejected', () => {
-      const wrapper = shallow(
-        <HistoryTranslationBase
-          translation={DEFAULT_TRANSLATION}
-          entity={DEFAULT_ENTITY}
-          user={DEFAULT_USER}
-        />,
+      const { container, queryAllByTestId } = renderHistoryTranslationBase(
+        DEFAULT_TRANSLATION,
+        DEFAULT_ENTITY,
+        DEFAULT_USER,
       );
 
-      expect(
-        wrapper.find('[id="history-translation--unreviewed"]'),
-      ).toHaveLength(2);
+      expect(queryAllByTestId('history-translation--unreviewed')).toHaveLength(
+        2,
+      );
     });
   });
 
@@ -211,31 +222,24 @@ describe('<HistoryTranslationComponent>', () => {
         ...DEFAULT_TRANSLATION,
         ...{ uid: 1, username: 'id_Sarevok', user: 'Sarevok' },
       };
-      const wrapper = shallow(
-        <HistoryTranslationBase
-          translation={translation}
-          entity={DEFAULT_ENTITY}
-          user={DEFAULT_USER}
-        />,
+      const { queryByTestId } = renderHistoryTranslationBase(
+        translation,
+        DEFAULT_ENTITY,
+        DEFAULT_USER,
       );
-
-      const link = wrapper.find('User').dive().find('a');
-      expect(link.props()).toMatchObject({
-        children: 'Sarevok',
-        href: '/contributors/id_Sarevok',
-      });
+      const link = queryByTestId('user');
+      expect(link).toHaveTextContent('Sarevok');
+      expect(link).toHaveAttribute('href', '/contributors/id_Sarevok');
     });
 
     it('returns no link when the author is not known', () => {
-      const wrapper = shallow(
-        <HistoryTranslationBase
-          translation={DEFAULT_TRANSLATION}
-          entity={DEFAULT_ENTITY}
-          user={DEFAULT_USER}
-        />,
+      const { queryByTestId } = renderHistoryTranslationBase(
+        DEFAULT_TRANSLATION,
+        DEFAULT_ENTITY,
+        DEFAULT_USER,
       );
 
-      const link = wrapper.find('User').dive().find('a');
+      const link = queryByTestId('user').querySelectorAll('a');
       expect(link).toHaveLength(0);
     });
   });
@@ -246,18 +250,16 @@ describe('<HistoryTranslationComponent>', () => {
         ...DEFAULT_TRANSLATION,
         ...{ approved: true },
       };
-      const wrapper = shallow(
-        <HistoryTranslationBase
-          translation={translation}
-          entity={DEFAULT_ENTITY}
-          user={DEFAULT_USER}
-        />,
+      const { container } = renderHistoryTranslationBase(
+        translation,
+        DEFAULT_ENTITY,
+        DEFAULT_USER,
       );
 
-      expect(wrapper.find('.approve')).toHaveLength(0);
-      expect(wrapper.find('.unapprove')).toHaveLength(1);
-      expect(wrapper.find('.reject')).toHaveLength(1);
-      expect(wrapper.find('.unreject')).toHaveLength(0);
+      expect(container.querySelectorAll('.approve')).toHaveLength(0);
+      expect(container.querySelectorAll('.unapprove')).toHaveLength(1);
+      expect(container.querySelectorAll('.reject')).toHaveLength(1);
+      expect(container.querySelectorAll('.unreject')).toHaveLength(0);
     });
 
     it('shows the correct status for rejected translations', () => {
@@ -265,191 +267,166 @@ describe('<HistoryTranslationComponent>', () => {
         ...DEFAULT_TRANSLATION,
         ...{ rejected: true },
       };
-      const wrapper = shallow(
-        <HistoryTranslationBase
-          translation={translation}
-          entity={DEFAULT_ENTITY}
-          user={DEFAULT_USER}
-        />,
+      const { container } = renderHistoryTranslationBase(
+        translation,
+        DEFAULT_ENTITY,
+        DEFAULT_USER,
       );
 
-      expect(wrapper.find('.approve')).toHaveLength(1);
-      expect(wrapper.find('.unapprove')).toHaveLength(0);
-      expect(wrapper.find('.reject')).toHaveLength(0);
-      expect(wrapper.find('.unreject')).toHaveLength(1);
+      expect(container.querySelectorAll('.approve')).toHaveLength(1);
+      expect(container.querySelectorAll('.unapprove')).toHaveLength(0);
+      expect(container.querySelectorAll('.reject')).toHaveLength(0);
+      expect(container.querySelectorAll('.unreject')).toHaveLength(1);
     });
 
     it('shows the correct status for unreviewed translations', () => {
-      const wrapper = shallow(
-        <HistoryTranslationBase
-          translation={DEFAULT_TRANSLATION}
-          entity={DEFAULT_ENTITY}
-          user={DEFAULT_USER}
-        />,
+      const { container } = renderHistoryTranslationBase(
+        DEFAULT_TRANSLATION,
+        DEFAULT_ENTITY,
+        DEFAULT_USER,
       );
 
-      expect(wrapper.find('.approve')).toHaveLength(1);
-      expect(wrapper.find('.unapprove')).toHaveLength(0);
-      expect(wrapper.find('.reject')).toHaveLength(1);
-      expect(wrapper.find('.unreject')).toHaveLength(0);
+      expect(container.querySelectorAll('.approve')).toHaveLength(1);
+      expect(container.querySelectorAll('.unapprove')).toHaveLength(0);
+      expect(container.querySelectorAll('.reject')).toHaveLength(1);
+      expect(container.querySelectorAll('.unreject')).toHaveLength(0);
     });
   });
 
   describe('permissions', () => {
     it('allows the user to reject their own unapproved translation', () => {
-      const wrapper = shallow(
-        <HistoryTranslationBase
-          translation={DEFAULT_TRANSLATION}
-          entity={DEFAULT_ENTITY}
-          user={DEFAULT_USER}
-        />,
+      const { container } = renderHistoryTranslationBase(
+        DEFAULT_TRANSLATION,
+        DEFAULT_ENTITY,
+        DEFAULT_USER,
       );
 
-      expect(wrapper.find('.can-reject')).toHaveLength(1);
-      expect(wrapper.find('.can-approve')).toHaveLength(0);
+      expect(container.querySelectorAll('.can-reject')).toHaveLength(1);
+      expect(container.querySelectorAll('.can-approve')).toHaveLength(0);
     });
 
     it('forbids the user to reject their own approved translation', () => {
       const translation = { ...DEFAULT_TRANSLATION, approved: true };
-      const wrapper = shallow(
-        <HistoryTranslationBase
-          translation={translation}
-          entity={DEFAULT_ENTITY}
-          user={DEFAULT_USER}
-        />,
+      const { container } = renderHistoryTranslationBase(
+        translation,
+        DEFAULT_ENTITY,
+        DEFAULT_USER,
       );
 
-      expect(wrapper.find('.can-reject')).toHaveLength(0);
-      expect(wrapper.find('.can-approve')).toHaveLength(0);
+      expect(container.querySelectorAll('.can-reject')).toHaveLength(0);
+      expect(container.querySelectorAll('.can-approve')).toHaveLength(0);
     });
 
     it('allows translators to review the translation', () => {
       hookModule.useTranslator.mockReturnValue(true);
-      const wrapper = shallow(
-        <HistoryTranslationBase
-          translation={DEFAULT_TRANSLATION}
-          entity={DEFAULT_ENTITY}
-          user={DEFAULT_USER}
-        />,
+      const { container } = renderHistoryTranslationBase(
+        DEFAULT_TRANSLATION,
+        DEFAULT_ENTITY,
+        DEFAULT_USER,
       );
 
-      expect(wrapper.find('.can-reject')).toHaveLength(1);
-      expect(wrapper.find('.can-approve')).toHaveLength(1);
+      expect(container.querySelectorAll('.can-reject')).toHaveLength(1);
+      expect(container.querySelectorAll('.can-approve')).toHaveLength(1);
     });
 
     it('allows translators to delete the rejected translation', () => {
       hookModule.useTranslator.mockReturnValue(true);
       const translation = { ...DEFAULT_TRANSLATION, rejected: true };
-      const wrapper = shallow(
-        <HistoryTranslationBase
-          translation={translation}
-          entity={DEFAULT_ENTITY}
-          user={DEFAULT_USER}
-        />,
+      const { container } = renderHistoryTranslationBase(
+        translation,
+        DEFAULT_ENTITY,
+        DEFAULT_USER,
       );
 
-      expect(wrapper.find('.delete')).toHaveLength(1);
+      expect(container.querySelectorAll('.delete')).toHaveLength(1);
     });
 
     it('forbids translators to delete non-rejected translation', () => {
       hookModule.useTranslator.mockReturnValue(true);
       const translation = { ...DEFAULT_TRANSLATION, rejected: false };
-      const wrapper = shallow(
-        <HistoryTranslationBase
-          translation={translation}
-          entity={DEFAULT_ENTITY}
-          user={DEFAULT_USER}
-        />,
+      const { container } = renderHistoryTranslationBase(
+        translation,
+        DEFAULT_ENTITY,
+        DEFAULT_USER,
       );
 
-      expect(wrapper.find('.delete')).toHaveLength(0);
+      expect(container.querySelectorAll('.delete')).toHaveLength(0);
     });
 
     it('allows the user to delete their own rejected translation', () => {
       const translation = { ...DEFAULT_TRANSLATION, rejected: true };
-      const wrapper = shallow(
-        <HistoryTranslationBase
-          translation={translation}
-          entity={DEFAULT_ENTITY}
-          user={DEFAULT_USER}
-        />,
+      const { container } = renderHistoryTranslationBase(
+        translation,
+        DEFAULT_ENTITY,
+        DEFAULT_USER,
       );
 
-      expect(wrapper.find('.delete')).toHaveLength(1);
+      expect(container.querySelectorAll('.delete')).toHaveLength(1);
     });
 
     it('forbids the user to delete rejected translation of another user', () => {
       const translation = { ...DEFAULT_TRANSLATION, rejected: true };
-      const wrapper = shallow(
-        <HistoryTranslationBase
-          translation={translation}
-          entity={DEFAULT_ENTITY}
-          user={{ username: 'Andy_Dwyer' }}
-        />,
+      const { container } = renderHistoryTranslationBase(
+        translation,
+        DEFAULT_ENTITY,
+        { username: 'Andy_Dwyer' },
       );
 
-      expect(wrapper.find('.delete')).toHaveLength(0);
+      expect(container.querySelectorAll('.delete')).toHaveLength(0);
     });
   });
 
   describe('DiffToggle', () => {
     it('shows default translation and no Show/Hide diff button for the first translation', () => {
-      const wrapper = shallow(
-        <HistoryTranslationBase
-          translation={DEFAULT_TRANSLATION}
-          entity={DEFAULT_ENTITY}
-          activeTranslation={DEFAULT_TRANSLATION}
-          user={DEFAULT_USER}
-          index={0}
-        />,
+      const { container, queryByTestId } = renderHistoryTranslationBase(
+        DEFAULT_TRANSLATION,
+        DEFAULT_ENTITY,
+        DEFAULT_USER,
+        DEFAULT_TRANSLATION,
+        0,
       );
 
-      expect(wrapper.find('.default')).toHaveLength(1);
-      expect(wrapper.find('.diff-visible')).toHaveLength(0);
+      expect(container.querySelectorAll('.default')).toHaveLength(1);
+      expect(container.querySelectorAll('.diff-visible')).toHaveLength(0);
 
-      const toggle = wrapper.find('DiffToggle').dive();
-      expect(toggle.find('.toggle.diff.off')).toHaveLength(0);
-      expect(toggle.find('.toggle.diff.on')).toHaveLength(0);
+      expect(
+        queryByTestId('history-Translation--toggle-diff'),
+      ).not.toBeInTheDocument();
     });
 
     it('shows default translation and the Show diff button for a non-first translation', () => {
-      const wrapper = shallow(
-        <HistoryTranslationBase
-          translation={DEFAULT_TRANSLATION}
-          entity={DEFAULT_ENTITY}
-          activeTranslation={DEFAULT_TRANSLATION}
-          user={DEFAULT_USER}
-          index={1}
-        />,
+      const { container, queryByTestId } = renderHistoryTranslationBase(
+        DEFAULT_TRANSLATION,
+        DEFAULT_ENTITY,
+        DEFAULT_USER,
+        DEFAULT_TRANSLATION,
+        1,
       );
 
-      expect(wrapper.find('.default')).toHaveLength(1);
-      expect(wrapper.find('.diff-visible')).toHaveLength(0);
+      expect(container.querySelectorAll('.default')).toHaveLength(1);
+      expect(container.querySelectorAll('.diff-visible')).toHaveLength(0);
 
-      const toggle = wrapper.find('DiffToggle').dive();
-      expect(toggle.find('.toggle.diff.off')).toHaveLength(1);
-      expect(toggle.find('.toggle.diff.on')).toHaveLength(0);
+      const toggle = queryByTestId('history-Translation--toggle-diff');
+      expect(toggle.querySelectorAll('.toggle.diff.off')).toHaveLength(1);
+      expect(toggle.querySelectorAll('.toggle.diff.on')).toHaveLength(0);
     });
 
     it('shows translation diff and the Hide diff button for a non-first translation if diff visible', () => {
-      const wrapper = shallow(
-        <HistoryTranslationBase
-          translation={DEFAULT_TRANSLATION}
-          entity={DEFAULT_ENTITY}
-          activeTranslation={DEFAULT_TRANSLATION}
-          user={DEFAULT_USER}
-          index={1}
-        />,
+      const { container, queryByTestId } = renderHistoryTranslationBase(
+        DEFAULT_TRANSLATION,
+        DEFAULT_ENTITY,
+        DEFAULT_USER,
+        DEFAULT_TRANSLATION,
+        1,
       );
+      fireEvent.click(queryByTestId('diff-toggle'));
 
-      wrapper.find('DiffToggle').props().toggleVisible();
+      expect(container.querySelectorAll('.default')).toHaveLength(0);
+      expect(container.querySelectorAll('.diff-visible')).toHaveLength(1);
 
-      expect(wrapper.find('.default')).toHaveLength(0);
-      expect(wrapper.find('.diff-visible')).toHaveLength(1);
-
-      const toggle = wrapper.find('DiffToggle').dive();
-      expect(toggle.find('.toggle.diff.off')).toHaveLength(0);
-      expect(toggle.find('.toggle.diff.on')).toHaveLength(1);
+      const toggle = queryByTestId('history-Translation--toggle-diff');
+      expect(toggle.querySelectorAll('.toggle.diff.off')).toHaveLength(0);
+      expect(toggle.querySelectorAll('.toggle.diff.on')).toHaveLength(1);
     });
   });
 });

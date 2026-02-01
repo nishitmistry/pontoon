@@ -26,7 +26,11 @@ export function RejectAll({
   }, [confirmationVisible, rejectAll]);
 
   return (
-    <button className='reject-all' onClick={handleRejectAll}>
+    <button
+      data-testid='reject-all'
+      className='reject-all'
+      onClick={handleRejectAll}
+    >
       <Title
         confirmationVisible={confirmationVisible}
         response={response ?? {}}

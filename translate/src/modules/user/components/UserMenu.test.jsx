@@ -1,20 +1,26 @@
-import { mount, shallow } from 'enzyme';
+import { render } from '@testing-library/react';
 import React from 'react';
 
 import { EntityView } from '~/context/EntityView';
 import { Location } from '~/context/Location';
 import * as Translator from '~/hooks/useTranslator';
 
-import { findLocalizedById, MockLocalizationProvider } from '~/test/utils';
+import { MockLocalizationProvider } from '~/test/utils';
 
-import { FileUpload } from './FileUpload';
-import { SignInOutForm } from './SignInOutForm';
 import { UserMenu, UserMenuDialog } from './UserMenu';
-import { vi } from 'vitest';
+import { expect, vi } from 'vitest';
+import { fireEvent } from '@testing-library/react';
 
 describe('<UserMenuDialog>', () => {
   beforeAll(() => {
     vi.mock('~/hooks/useTranslator', () => ({ useTranslator: vi.fn() }));
+    vi.mock('@fluent/react', async (importOriginal) => {
+      const actual = await importOriginal();
+      return {
+        ...actual,
+        Localized: ({ id, children }) => <div data-testid={id}>{children}</div>,
+      };
+    });
   });
   afterAll(() => {
     Translator.useTranslator.mockRestore();
@@ -35,7 +41,7 @@ describe('<UserMenuDialog>', () => {
     location = LOCATION,
   } = {}) {
     Translator.useTranslator.mockReturnValue(isTranslator);
-    return mount(
+    return render(
       <Location.Provider value={location}>
         <MockLocalizationProvider>
           <EntityView.Provider
@@ -49,116 +55,126 @@ describe('<UserMenuDialog>', () => {
   }
 
   it('shows the right menu items when the user is logged in', () => {
-    const wrapper = createUserMenu();
+    const { container, queryAllByTestId } = createUserMenu();
 
-    expect(wrapper.find('.details')).toHaveLength(1);
-    expect(wrapper.find('a[href="/settings/"]')).toHaveLength(1);
-    expect(wrapper.find(SignInOutForm)).toHaveLength(1);
+    expect(container.querySelectorAll('.details')).toHaveLength(1);
+    expect(container.querySelectorAll('a[href="/settings/"]')).toHaveLength(1);
+    expect(queryAllByTestId('sign-in-out-form')).toHaveLength(1);
   });
 
   it('hides the right menu items when the user is logged out', () => {
-    const wrapper = createUserMenu({ isAuthenticated: false });
+    const { container, queryAllByTestId } = createUserMenu({
+      isAuthenticated: false,
+    });
 
-    expect(wrapper.find('.details')).toHaveLength(0);
-    expect(wrapper.find('a[href="/settings/"]')).toHaveLength(0);
-    expect(wrapper.find(SignInOutForm)).toHaveLength(0);
+    expect(container.querySelectorAll('.details')).toHaveLength(0);
+    expect(container.querySelectorAll('a[href="/settings/"]')).toHaveLength(0);
+    expect(queryAllByTestId('sign-in-out-form')).toHaveLength(0);
   });
 
   it('shows upload & download menu items', () => {
-    const wrapper = createUserMenu();
+    const { queryAllByTestId } = createUserMenu();
 
-    expect(wrapper.find(FileUpload)).toHaveLength(1);
+    expect(queryAllByTestId('file-upload')).toHaveLength(1);
     expect(
-      findLocalizedById(wrapper, 'user-UserMenu--download-translations'),
+      queryAllByTestId('user-UserMenu--download-translations'),
     ).toHaveLength(1);
   });
 
   it('hides upload & download menu items when translating all projects', () => {
-    const wrapper = createUserMenu({
+    const { queryAllByTestId } = createUserMenu({
       location: { ...LOCATION, project: 'all-projects' },
     });
 
-    expect(wrapper.find(FileUpload)).toHaveLength(0);
+    expect(queryAllByTestId('file-upload')).toHaveLength(0);
     expect(
-      findLocalizedById(wrapper, 'user-UserMenu--download-translations'),
+      queryAllByTestId('user-UserMenu--download-translations'),
     ).toHaveLength(0);
   });
 
   it('hides admin · current project menu item when translating all projects', () => {
-    const wrapper = createUserMenu({
+    const { container } = createUserMenu({
       location: { ...LOCATION, project: 'all-projects' },
       isPM: true,
     });
 
     expect(
-      wrapper.find('a[href="/admin/projects/all-projects/"]'),
+      container.querySelectorAll('a[href="/admin/projects/all-projects/"]'),
     ).toHaveLength(0);
   });
 
   it('shows admin · current project menu item when translating a project', () => {
-    const wrapper = createUserMenu({ isPM: true });
+    const { container } = createUserMenu({ isPM: true });
 
-    expect(wrapper.find('a[href="/admin/projects/proj/"]')).toHaveLength(1);
+    expect(
+      container.querySelectorAll('a[href="/admin/projects/proj/"]'),
+    ).toHaveLength(1);
   });
 
   it('hides upload & download menu items when translating all resources', () => {
-    const wrapper = createUserMenu({
+    const { queryAllByTestId } = createUserMenu({
       location: { ...LOCATION, resource: 'all-resources' },
     });
 
-    expect(wrapper.find(FileUpload)).toHaveLength(0);
+    expect(queryAllByTestId('file-upload')).toHaveLength(0);
     expect(
-      findLocalizedById(wrapper, 'user-UserMenu--download-translations'),
+      queryAllByTestId('user-UserMenu--download-translations'),
     ).toHaveLength(0);
   });
 
   it('hides upload menu item for users without permission to review translations', () => {
-    const wrapper = createUserMenu({ isTranslator: false });
+    const { queryAllByTestId } = createUserMenu({ isTranslator: false });
 
-    expect(wrapper.find(FileUpload)).toHaveLength(0);
+    expect(queryAllByTestId('file-upload')).toHaveLength(0);
   });
 
   it('hides upload menu for read-only strings', () => {
-    const wrapper = createUserMenu({ isReadOnly: true });
+    const { queryAllByTestId } = createUserMenu({ isReadOnly: true });
 
-    expect(wrapper.find(FileUpload)).toHaveLength(0);
+    expect(queryAllByTestId('file-upload')).toHaveLength(0);
   });
 
   it('shows the admin menu items when the user is an admin', () => {
-    const wrapper = createUserMenu({ isPM: true });
+    const { container } = createUserMenu({ isPM: true });
 
-    expect(wrapper.find('a[href="/admin/"]')).toHaveLength(1);
-    expect(wrapper.find('a[href="/admin/projects/proj/"]')).toHaveLength(1);
+    expect(container.querySelectorAll('a[href="/admin/"]')).toHaveLength(1);
+    expect(
+      container.querySelectorAll('a[href="/admin/projects/proj/"]'),
+    ).toHaveLength(1);
   });
 });
 
 describe('<UserMenu>', () => {
   function createShallowUserMenuBase({ isAuthenticated = true } = {}) {
-    return shallow(<UserMenu user={{ isAuthenticated }} />);
+    return render(
+      <MockLocalizationProvider>
+        <UserMenu user={{ isAuthenticated }} />
+      </MockLocalizationProvider>,
+    );
   }
 
   it('shows the user avatar when the user is logged in', () => {
-    const wrapper = createShallowUserMenuBase();
+    const { container } = createShallowUserMenuBase();
 
-    expect(wrapper.find('img')).toHaveLength(1);
-    expect(wrapper.find('.menu-icon')).toHaveLength(0);
+    expect(container.querySelectorAll('img')).toHaveLength(1);
+    expect(container.querySelectorAll('.menu-icon')).toHaveLength(0);
   });
 
   it('shows the general menu icon when the user is logged out', () => {
-    const wrapper = createShallowUserMenuBase({ isAuthenticated: false });
+    const { container } = createShallowUserMenuBase({ isAuthenticated: false });
 
-    expect(wrapper.find('img')).toHaveLength(0);
-    expect(wrapper.find('.menu-icon')).toHaveLength(1);
+    expect(container.querySelectorAll('img')).toHaveLength(0);
+    expect(container.querySelectorAll('.menu-icon')).toHaveLength(1);
   });
 
   it('toggles the user menu when clicking the user avatar', () => {
-    const wrapper = createShallowUserMenuBase();
-    expect(wrapper.find('UserMenuDialog')).toHaveLength(0);
+    const { container, queryAllByTestId } = createShallowUserMenuBase();
+    expect(queryAllByTestId('user-menu-dialog')).toHaveLength(0);
 
-    wrapper.find('.selector').simulate('click');
-    expect(wrapper.find('UserMenuDialog')).toHaveLength(1);
+    fireEvent.click(container.querySelector('.selector'));
+    expect(queryAllByTestId('user-menu-dialog')).toHaveLength(1);
 
-    wrapper.find('.selector').simulate('click');
-    expect(wrapper.find('UserMenuDialog')).toHaveLength(0);
+    fireEvent.click(container.querySelector('.selector'));
+    expect(queryAllByTestId('user-menu-dialog')).toHaveLength(0);
   });
 });

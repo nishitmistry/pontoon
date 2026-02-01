@@ -98,6 +98,7 @@ function DiffToggle({
   return (
     <Localized id='history-Translation--toggle-diff' attrs={{ title: true }}>
       <button
+        data-testid='diff-toggle'
         className={'toggle diff ' + (visible ? 'on' : 'off')}
         title='Toggle diff against the currently active translation'
         onClick={(ev) => {
@@ -120,6 +121,7 @@ const User = ({
 }) =>
   uid ? (
     <a
+      data-testid='user'
       href={`/contributors/${username}`}
       title={title}
       target='_blank'
@@ -129,7 +131,9 @@ const User = ({
       {user}
     </a>
   ) : (
-    <span title={title}>{user}</span>
+    <span data-testid='user' title={title}>
+      {user}
+    </span>
   );
 
 /**

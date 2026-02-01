@@ -1,4 +1,4 @@
-import { mount, shallow } from 'enzyme';
+import { render } from '@testing-library/react';
 import { createMemoryHistory } from 'history';
 import React from 'react';
 import { act } from 'react-dom/test-utils';
@@ -24,7 +24,7 @@ describe('<SearchBoxBase>', () => {
     const params = {
       search: '',
     };
-    const wrapper = shallow(
+    const { container } = render(
       <SearchBoxBase
         parameters={params}
         project={PROJECT}
@@ -32,35 +32,42 @@ describe('<SearchBoxBase>', () => {
       />,
     );
 
-    expect(wrapper.find('input#search')).toHaveLength(1);
+    expect(container.querySelectorAll('input#search')).toHaveLength(1);
   });
 
   it('has the correct placeholder based on parameters', () => {
     for (const { name, slug } of FILTERS_STATUS) {
-      const wrapper = mount(
+      const { container } = render(
         <SearchBoxBase
           parameters={{ status: slug }}
           project={PROJECT}
           searchAndFilters={SEARCH_AND_FILTERS}
         />,
       );
-      expect(wrapper.find('input#search').prop('placeholder')).toContain(name);
+
+      expect(container.querySelector('input#search')).toHaveAttribute(
+        'placeholder',
+        expect.stringContaining(name),
+      );
     }
 
     for (const { name, slug } of FILTERS_EXTRA) {
-      const wrapper = mount(
+      const { container } = render(
         <SearchBoxBase
           parameters={{ extra: slug }}
           project={PROJECT}
           searchAndFilters={SEARCH_AND_FILTERS}
         />,
       );
-      expect(wrapper.find('input#search').prop('placeholder')).toContain(name);
+      expect(container.querySelector('input#search')).toHaveAttribute(
+        'placeholder',
+        expect.stringContaining(name),
+      );
     }
   });
 
   it('empties the search field after navigation parameter "search" gets removed', () => {
-    const wrapper = mount(
+    const { container, rerender } = render(
       <SearchBoxBase
         parameters={{ search: 'search' }}
         project={PROJECT}
@@ -68,16 +75,21 @@ describe('<SearchBoxBase>', () => {
       />,
     );
 
-    expect(wrapper.find('input').prop('value')).toEqual('search');
+    expect(container.querySelector('input')).toHaveValue('search');
 
-    wrapper.setProps({ parameters: { search: null } });
-    wrapper.update();
+    rerender(
+      <SearchBoxBase
+        parameters={{ search: null }}
+        project={PROJECT}
+        searchAndFilters={SEARCH_AND_FILTERS}
+      />,
+    );
 
-    expect(wrapper.find('input').prop('value')).toEqual('');
+    expect(container.querySelector('input')).toHaveValue('');
   });
 
   it('toggles a filter', () => {
-    const wrapper = mount(
+    const { container } = render(
       <SearchBoxBase
         parameters={{}}
         project={PROJECT}
@@ -90,7 +102,6 @@ describe('<SearchBoxBase>', () => {
     act(() => {
       wrapper.find('FiltersPanel').prop('toggleFilter')('missing', 'statuses');
     });
-    wrapper.update();
 
     expect(wrapper.find('FiltersPanel').prop('filters').statuses).toEqual([
       'missing',
@@ -98,7 +109,7 @@ describe('<SearchBoxBase>', () => {
   });
 
   it('sets a single filter', () => {
-    const wrapper = mount(
+    const { container } = render(
       <SearchBoxBase
         dispatch={() => {}}
         parameters={{ push() {} }}
@@ -115,7 +126,6 @@ describe('<SearchBoxBase>', () => {
       toggleFilter('missing', 'statuses');
       applySingleFilter('warnings', 'statuses');
     });
-    wrapper.update();
 
     expect(wrapper.find('FiltersPanel').prop('filters').statuses).toEqual([
       'warnings',
@@ -123,7 +133,7 @@ describe('<SearchBoxBase>', () => {
   });
 
   it('sets multiple & resets to initial statuses', () => {
-    const wrapper = mount(
+    const { container } = render(
       <SearchBoxBase
         parameters={{}}
         project={PROJECT}
@@ -136,13 +146,11 @@ describe('<SearchBoxBase>', () => {
       toggle('warnings', 'statuses');
       toggle('rejected', 'extras');
     });
-    wrapper.update();
 
     act(() => {
       const toggle = wrapper.find('FiltersPanel').prop('toggleFilter');
       toggle('errors', 'statuses');
     });
-    wrapper.update();
 
     expect(wrapper.find('FiltersPanel').prop('filters')).toMatchObject({
       extras: ['rejected'],
@@ -152,7 +160,6 @@ describe('<SearchBoxBase>', () => {
     act(() => {
       wrapper.find('FiltersPanel').prop('resetFilters')();
     });
-    wrapper.update();
 
     expect(wrapper.find('FiltersPanel').prop('filters')).toMatchObject({
       extras: [],
@@ -162,7 +169,7 @@ describe('<SearchBoxBase>', () => {
 
   it('sets status to null when "all" is selected', () => {
     const push = vi.fn();
-    const wrapper = mount(
+    const { container } = render(
       <SearchBoxBase
         dispatch={(a) => (typeof a === 'function' ? a() : {})}
         parameters={{ push }}
@@ -176,7 +183,6 @@ describe('<SearchBoxBase>', () => {
       const apply = wrapper.find('FiltersPanel').prop('applySingleFilter');
       apply('all', 'statuses');
     });
-    wrapper.update();
 
     expect(push).toHaveBeenCalledTimes(1);
     expect(push).toHaveBeenNthCalledWith(1, {
@@ -193,7 +199,7 @@ describe('<SearchBoxBase>', () => {
 
   it('sets correct status', () => {
     const push = vi.fn();
-    const wrapper = mount(
+    const { container } = render(
       <SearchBoxBase
         dispatch={(a) => (typeof a === 'function' ? a() : {})}
         parameters={{ push }}
@@ -213,13 +219,11 @@ describe('<SearchBoxBase>', () => {
       toggle('user@example.com', 'authors');
       setTimeRange('111111111111-111111111111');
     });
-    wrapper.update();
 
     act(() => {
       const toggle = wrapper.find('FiltersPanel').prop('toggleFilter');
       toggle('warnings', 'statuses');
     });
-    wrapper.update();
 
     const apply = wrapper.find('FiltersPanel').prop('applyFilters');
     apply();
@@ -246,22 +250,27 @@ describe('<SearchBox>', () => {
     history.listen(spy);
 
     const store = createReduxStore();
-    const wrapper = mountComponentWithStore(SearchBox, store, {}, history);
+    const { container } = mountComponentWithStore(
+      SearchBox,
+      store,
+      {},
+      history,
+    );
 
     act(() => {
-      fireEvent.change(wrapper.container.querySelector('input#search'), {
+      fireEvent.change(container.querySelector('input#search'), {
         target: { value: 'test' },
       });
     });
 
     // The state has been updated correctly...
-    expect(wrapper.container.querySelector('input#search')).toHaveValue('test');
+    expect(container.querySelector('input#search')).toHaveValue('test');
 
     // ... but it wasn't propagated to the global redux store yet.
     expect(spy).not.toHaveBeenCalled();
 
     // Wait until Enter is pressed.
-    fireEvent.keyDown(wrapper.container.querySelector('input#search'), {
+    fireEvent.keyDown(container.querySelector('input#search'), {
       key: 'Enter',
       code: 'Enter',
     });
@@ -281,7 +290,7 @@ describe('<SearchBox>', () => {
   });
 
   it('puts focus on the search input on Ctrl + Shift + F', () => {
-    const wrapper = mount(
+    const { container } = render(
       <SearchBoxBase
         parameters={{ search: '' }}
         project={PROJECT}
@@ -290,7 +299,7 @@ describe('<SearchBox>', () => {
     );
 
     const focusMock = vi.spyOn(
-      wrapper.find('input#search').instance(),
+      container.querySelector('input#search'),
       'focus',
     );
     document.dispatchEvent(

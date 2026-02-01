@@ -17,7 +17,11 @@ export function ApproveAll({
   batchactions: { response, requestInProgress },
 }: Props): React.ReactElement<'button'> {
   return (
-    <button className='approve-all' onClick={approveAll}>
+    <button
+      data-testid='approve-all'
+      className='approve-all'
+      onClick={approveAll}
+    >
       <Title {...response} />
       {requestInProgress === 'approve' ? (
         <i className='fas fa-2x fa-circle-notch fa-spin'></i>

@@ -15,7 +15,7 @@ const DEFAULT_TRANSLATION = {
 
 function createMachineryTranslation(translation) {
   const store = createReduxStore();
-  const wrapper = mountComponentWithStore(
+  const { container } = mountComponentWithStore(
     MachineryTranslationComponent,
     store,
     { translation },
@@ -52,7 +52,7 @@ describe('<MachineryTranslationComponent>', () => {
     );
 
     // No quality.
-    expect(container.querySelector('.quality')).not.toBeInTheDocument();
+    expect(container.querySelectorAll('.quality')).toHaveLength(0);
   });
 
   it('shows quality when possible', () => {
@@ -62,7 +62,7 @@ describe('<MachineryTranslationComponent>', () => {
     };
     const { container } = createMachineryTranslation(translation);
 
-    expect(container.querySelector('.quality')).toBeInTheDocument();
+    expect(container.querySelectorAll('.quality')).toHaveLength(1);
     expect(container.querySelector('.quality')).toHaveTextContent('100%');
   });
 });

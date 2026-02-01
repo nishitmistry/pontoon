@@ -1,5 +1,5 @@
 import React from 'react';
-import { mount } from 'enzyme';
+import { render } from '@testing-library/react';
 
 import { MachineryTranslations } from '~/context/MachineryTranslations';
 import { SearchData } from '~/context/SearchData';
@@ -14,7 +14,7 @@ vi.mock('~/hooks', () => ({
 }));
 
 const mountMachinery = (translations, search) =>
-  mount(
+  render(
     <MockLocalizationProvider>
       <MachineryTranslations.Provider
         value={{ source: 'source', translations }}
@@ -40,14 +40,14 @@ const mountMachinery = (translations, search) =>
 
 describe('<Machinery>', () => {
   it('shows a search form', () => {
-    const wrapper = mountMachinery([], {});
+    const { container } = mountMachinery([], {});
 
-    expect(wrapper.find('.search-wrapper')).toHaveLength(1);
-    expect(wrapper.find('#machinery-search')).toHaveLength(1);
+    expect(container.querySelectorAll('.search-wrapper')).toHaveLength(1);
+    expect(container.querySelectorAll('#machinery-search')).toHaveLength(1);
   });
 
   it('shows the correct number of translations', () => {
-    const wrapper = mountMachinery(
+    const { container } = mountMachinery(
       [
         { original: '1', sources: [] },
         { original: '2', sources: [] },
@@ -61,12 +61,12 @@ describe('<Machinery>', () => {
       },
     );
 
-    expect(wrapper.find('MachineryTranslationComponent')).toHaveLength(5);
+    expect(container.find('MachineryTranslationComponent')).toHaveLength(5);
   });
 
   it('renders a reset button if a search query is present', () => {
-    const wrapper = mountMachinery([], { input: 'test', query: 'test' });
+    const { container } = mountMachinery([], { input: 'test', query: 'test' });
 
-    expect(wrapper.find('button')).toHaveLength(1);
+    expect(container.querySelectorAll('button')).toHaveLength(1);
   });
 });

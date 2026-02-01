@@ -79,7 +79,7 @@ export function UserMenuDialog({
   };
 
   return (
-    <ul ref={ref} className='menu'>
+    <ul ref={ref} className='menu' data-testid='user-menu-dialog'>
       {user.isAuthenticated && (
         <>
           <li className='details'>

@@ -1,5 +1,5 @@
 import ftl from '@fluent/dedent';
-import { mount } from 'enzyme';
+import { render } from '@testing-library/react';
 import { createMemoryHistory } from 'history';
 import React, { useContext } from 'react';
 import { act } from 'react-dom/test-utils';
@@ -10,13 +10,13 @@ import { EditorActions, EditorProvider } from '~/context/Editor';
 import { EntityViewProvider } from '~/context/EntityView';
 import { LocationProvider } from '~/context/Location';
 import { RECEIVE_ENTITIES } from '~/modules/entities/actions';
-import { EditField } from '~/modules/translationform/components/EditField';
 
 import { createDefaultUser, createReduxStore } from '~/test/store';
 import { MockLocalizationProvider } from '~/test/utils';
 
 import { Editor } from './Editor';
 import { vi } from 'vitest';
+import { fireEvent } from '@testing-library/react';
 
 const NESTED_SELECTORS_STRING = ftl`
   my-message =
@@ -99,7 +99,7 @@ function mountEditor(entityPk = 1) {
     return null;
   };
 
-  const wrapper = mount(
+  const wrapper = render(
     <Provider store={store}>
       <LocationProvider history={history}>
         <MockLocalizationProvider>
@@ -120,7 +120,6 @@ function mountEditor(entityPk = 1) {
     hasMore: false,
   });
   act(() => history.push(`?string=${entityPk}`));
-  wrapper.update();
 
   return [wrapper, actions];
 }
@@ -129,29 +128,29 @@ describe('<Editor>', () => {
   it('renders the simple form when passing a simple string', () => {
     const [wrapper] = mountEditor(1);
 
-    const input = wrapper.find(EditField);
+    const input = wrapper.queryAllByTestId('edit-field');
     expect(input).toHaveLength(1);
-    expect(input.prop('defaultValue')).toBe('Salut');
+    expect(input[0]).toHaveTextContent('Salut');
   });
 
   it('renders the simple form when passing a simple string with one attribute', () => {
     const [wrapper] = mountEditor(2);
 
-    const input = wrapper.find(EditField);
+    const input = wrapper.queryAllByTestId('edit-field');
     expect(input).toHaveLength(1);
-    expect(input.prop('defaultValue')).toBe('Quelque chose de bien');
+    expect(input[0]).toHaveTextContent('Quelque chose de bien');
   });
 
   it('renders the rich form when passing a supported rich message', () => {
     const [wrapper] = mountEditor(3);
 
-    expect(wrapper.find(EditField)).toHaveLength(2);
+    expect(wrapper.queryAllByTestId('edit-field')).toHaveLength(2);
   });
 
   it('renders the rich form when passing a message with nested selector', () => {
     const [wrapper] = mountEditor(5);
 
-    expect(wrapper.find(EditField)).toHaveLength(4);
+    expect(wrapper.queryAllByTestId('edit-field')).toHaveLength(4);
   });
 
   it('renders the source form when passing a broken string', () => {
@@ -159,46 +158,45 @@ describe('<Editor>', () => {
     const [wrapper] = mountEditor(6);
     expect(spy).toHaveBeenCalledWith(expect.stringContaining('E0028'));
 
-    const input = wrapper.find(EditField);
+    const input = wrapper.queryAllByTestId('edit-field');
     expect(input).toHaveLength(1);
-    expect(input.prop('defaultValue')).toBe(BROKEN_STRING.trim());
+    expect(input[0]).toHaveTextContent(BROKEN_STRING.trim());
   });
 
   it('converts translation when switching source mode', () => {
     const [wrapper] = mountEditor(1);
 
     // Force source mode.
-    wrapper.find('button.ftl').simulate('click');
+    fireEvent.click(wrapper.container.querySelector('button.ftl'));
 
-    const input = wrapper.find(EditField);
+    const input = wrapper.queryAllByTestId('edit-field');
     expect(input).toHaveLength(1);
-    expect(input.prop('defaultValue')).toBe('my-message = Salut');
+    expect(input[0]).toHaveTextContent('my-message = Salut');
   });
 
   it('sets empty initial translation in source mode when untranslated', () => {
     const [wrapper] = mountEditor(4);
 
     // Force source mode.
-    wrapper.find('button.ftl').simulate('click');
+    fireEvent.click(wrapper.container.querySelector('button.ftl'));
 
-    const input = wrapper.find(EditField);
+    const input = wrapper.queryAllByTestId('edit-field');
     expect(input).toHaveLength(1);
-    expect(input.prop('defaultValue')).toBe('my-message = { "" }');
+    expect(input[0]).toHaveTextContent('my-message = { "" }');
   });
 
   it('changes editor implementation when changing translation syntax', () => {
     const [wrapper, actions] = mountEditor(1);
 
     // Force source mode.
-    wrapper.find('button.ftl').simulate('click');
+    fireEvent.click(wrapper.container.querySelector('button.ftl'));
 
     act(() => actions.setEditorFromHistory(RICH_MESSAGE_STRING));
-    wrapper.update();
 
     // Switch to rich mode.
-    wrapper.find('button.ftl').simulate('click');
+    fireEvent.click(wrapper.container.querySelector('button.ftl'));
 
-    expect(wrapper.find(EditField)).toHaveLength(2);
+    expect(wrapper.queryAllByTestId('edit-field')).toHaveLength(2);
   });
 
   it('updates content that comes from an external source', () => {
@@ -206,10 +204,9 @@ describe('<Editor>', () => {
 
     // Update the content with a Fluent string.
     act(() => actions.setEditorFromHistory('my-message = Coucou'));
-    wrapper.update();
 
     // The translation has been updated to a simplified preview.
-    expect(wrapper.find(EditField).text()).toEqual('Coucou');
+    expect(wrapper.queryByTestId('edit-field').textContent).toEqual('Coucou');
   });
 
   it('passes a reconstructed translation to sendTranslation', async () => {
@@ -221,8 +218,7 @@ describe('<Editor>', () => {
 
     // Update the content with new input
     act(() => actions.setResultFromInput(0, 'Coucou'));
-    wrapper.update();
-    await act(() => wrapper.find('.action-suggest').prop('onClick')());
+    fireEvent.click(wrapper.container.querySelector('.action-suggest'));
 
     expect(createSpy.mock.calls.length).toBe(1);
     const args = createSpy.mock.calls[0];

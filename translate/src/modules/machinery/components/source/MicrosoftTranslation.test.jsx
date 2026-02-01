@@ -1,16 +1,16 @@
 import React from 'react';
-import { shallow } from 'enzyme';
+import { render } from '@testing-library/react';
 
 import { MicrosoftTranslation } from './MicrosoftTranslation';
 
 describe('<MicrosoftTranslation>', () => {
   it('renders the MicrosoftTranslation component properly', () => {
-    const wrapper = shallow(<MicrosoftTranslation />);
+    const { container } = render(<MicrosoftTranslation />);
 
-    expect(wrapper.find('li')).toHaveLength(1);
+    expect(container.querySelectorAll('li')).toHaveLength(1);
     expect(wrapper.find('Localized').props().id).toEqual(
       'machinery-MicrosoftTranslation--translation-source',
     );
-    expect(wrapper.find('li span').text()).toEqual('MICROSOFT TRANSLATOR');
+    expect(wrapper.find('li span').textContent).toEqual('MICROSOFT TRANSLATOR');
   });
 });

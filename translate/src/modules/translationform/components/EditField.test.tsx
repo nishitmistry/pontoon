@@ -87,9 +87,9 @@ describe('<EditField>', () => {
       <MockEditField defaultValue='foo' format='fluent' />,
     );
 
-    const lines = container.querySelectorAll('.cm-line');
-    expect(lines).toHaveLength(1);
-    expect(lines[0].textContent).toEqual('foo');
+    const line = container.querySelectorAll('.cm-line');
+    expect(line).toHaveLength(1);
+    expect(line?.[0].textContent).toEqual('foo');
   });
 
   it('sets the result on user input', async () => {

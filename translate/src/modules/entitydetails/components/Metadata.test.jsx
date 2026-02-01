@@ -1,4 +1,4 @@
-import { mount } from 'enzyme';
+import { render } from '@testing-library/react';
 import React from 'react';
 import { Provider } from 'react-redux';
 
@@ -42,7 +42,7 @@ const USER = {
 
 function createMetadata(entity = ENTITY) {
   const store = createReduxStore({ user: USER });
-  return mount(
+  return render(
     <Provider store={store}>
       <MockLocalizationProvider>
         <Locale.Provider value={LOCALE}>
@@ -53,36 +53,52 @@ function createMetadata(entity = ENTITY) {
   );
 }
 
+vi.mock('@fluent/react', async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    Localized: ({ id, children }) => <div data-testid={id}>{children}</div>,
+  };
+});
+
 describe('<Metadata>', () => {
   it('renders correctly', () => {
-    const wrapper = createMetadata();
+    const { container, queryByTestId } = createMetadata();
 
-    expect(wrapper.text()).toContain(SRC_LOC);
-    expect(wrapper.find('#entitydetails-Metadata--comment').text()).toContain(
+    expect(container).toHaveTextContent(SRC_LOC);
+    expect(queryByTestId('entitydetails-Metadata--comment')).toHaveTextContent(
       ENTITY.comment,
     );
 
     expect(
-      wrapper.find('#entitydetails-Metadata--context a.resource-path').text(),
+      queryByTestId('entitydetails-Metadata--context').querySelector(
+        'a.resource-path',
+      ).textContent,
     ).toContain(ENTITY.path);
   });
 
   it('does not require a comment', () => {
-    const wrapper = createMetadata({ ...ENTITY, comment: '' });
-    expect(wrapper.text()).toContain(SRC_LOC);
-    expect(wrapper.find('#entitydetails-Metadata--comment')).toHaveLength(0);
+    const { container, queryAllByTestId } = createMetadata({
+      ...ENTITY,
+      comment: '',
+    });
+    expect(container).toHaveTextContent(SRC_LOC);
+    expect(queryAllByTestId('entitydetails-Metadata--comment')).toHaveLength(0);
   });
 
   it('does not require a source', () => {
-    const wrapper = createMetadata({ ...ENTITY, meta: [] });
-    expect(wrapper.text()).not.toContain(SRC_LOC);
-    expect(wrapper.find('#entitydetails-Metadata--comment').text()).toContain(
+    const { container, queryByTestId } = createMetadata({
+      ...ENTITY,
+      meta: [],
+    });
+    expect(container.textContent).not.toContain(SRC_LOC);
+    expect(queryByTestId('entitydetails-Metadata--comment')).toHaveTextContent(
       ENTITY.comment,
     );
   });
 
   it('finds examples for placeholders with source', () => {
-    const wrapper = createMetadata({
+    const { container } = createMetadata({
       ...ENTITY,
       format: 'webext',
       original: `
@@ -91,13 +107,13 @@ describe('<Metadata>', () => {
         {{{$REMAINING @source=|$REMAINING$|}/{$MAXIMUM @source=|$MAXIMUM$|} masks available.}}`,
     });
 
-    expect(wrapper.find('div.placeholder .content').text()).toBe(
-      '$MAXIMUM$: 5, $REMAINING$: 1',
-    );
+    expect(
+      container.querySelector('div.placeholder .content').textContent,
+    ).toBe('$MAXIMUM$: 5, $REMAINING$: 1');
   });
 
   it('only shows examples for placeholders with source and example', () => {
-    const wrapper = createMetadata({
+    const { container } = createMetadata({
       ...ENTITY,
       format: 'webext',
       original: `
@@ -106,6 +122,6 @@ describe('<Metadata>', () => {
         {{{$REMAINING}/{$MAXIMUM @source=|$MAXIMUM$|} masks available.}}`,
     });
 
-    expect(wrapper.find('div.placeholder')).toHaveLength(0);
+    expect(container.querySelectorAll('div.placeholder')).toHaveLength(0);
   });
 });

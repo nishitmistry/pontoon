@@ -1,4 +1,4 @@
-import { mount } from 'enzyme';
+import { render } from '@testing-library/react';
 import React, { useContext } from 'react';
 
 import * as EntityView from './EntityView';
@@ -25,7 +25,7 @@ describe('FailedChecksProvider', () => {
       failedChecks = useContext(FailedChecksData);
       return null;
     };
-    const wrapper = mount(
+    const wrapper = render(
       <FailedChecksProvider>
         <Spy />
       </FailedChecksProvider>,
@@ -42,7 +42,11 @@ describe('FailedChecksProvider', () => {
       warnings: ['Warning1'],
       approved: true,
     });
-    wrapper.setProps({});
+    wrapper.rerender(
+      <FailedChecksProvider>
+        <Spy />
+      </FailedChecksProvider>,
+    );
 
     expect(failedChecks).toMatchObject({
       errors: ['Error1'],
@@ -63,7 +67,7 @@ describe('FailedChecksProvider', () => {
       failedChecks = useContext(FailedChecksData);
       return null;
     };
-    mount(
+    render(
       <FailedChecksProvider>
         <Spy />
       </FailedChecksProvider>,
