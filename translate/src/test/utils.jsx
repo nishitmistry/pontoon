@@ -1,3 +1,4 @@
+import { FluentBundle, FluentResource } from '@fluent/bundle';
 import {
   LocalizationProvider,
   Localized,
@@ -81,8 +82,13 @@ export function findLocalizedById(wrapper, id) {
  * Mock the @fluent/react LocalizationProvider,
  * which is required as a wrapper for Localization.
  */
-export function MockLocalizationProvider({ children }) {
-  const l10n = new ReactLocalization([], null);
+export function MockLocalizationProvider({ children, resource }) {
+  const bundle = new FluentBundle('en-US');
+  if (resource) {
+    const fluentResource = new FluentResource(resource);
+    bundle.addResource(fluentResource);
+  }
+  const l10n = new ReactLocalization([bundle], null);
 
   // https://github.com/projectfluent/fluent.js/issues/411
   l10n.reportError = () => {};
