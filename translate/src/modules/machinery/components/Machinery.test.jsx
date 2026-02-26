@@ -1,5 +1,4 @@
 import React from 'react';
-import { mount } from 'enzyme';
 
 import { MachineryTranslations } from '~/context/MachineryTranslations';
 import { SearchData } from '~/context/SearchData';
@@ -7,6 +6,7 @@ import { MockLocalizationProvider } from '~/test/utils';
 
 import { Machinery } from './Machinery';
 import { vi } from 'vitest';
+import { render } from '@testing-library/react';
 
 vi.mock('~/hooks', () => ({
   useAppDispatch: () => () => {},
@@ -14,7 +14,7 @@ vi.mock('~/hooks', () => ({
 }));
 
 const mountMachinery = (translations, search) =>
-  mount(
+  render(
     <MockLocalizationProvider>
       <MachineryTranslations.Provider
         value={{ source: 'source', translations }}
@@ -40,14 +40,14 @@ const mountMachinery = (translations, search) =>
 
 describe('<Machinery>', () => {
   it('shows a search form', () => {
-    const wrapper = mountMachinery([], {});
+    const { container } = mountMachinery([], {});
 
-    expect(wrapper.find('.search-wrapper')).toHaveLength(1);
-    expect(wrapper.find('#machinery-search')).toHaveLength(1);
+    expect(container.querySelector('.search-wrapper')).toBeInTheDocument();
+    expect(container.querySelector('#machinery-search')).toBeInTheDocument();
   });
 
   it('shows the correct number of translations', () => {
-    const wrapper = mountMachinery(
+    const { getAllByRole, getAllByTitle } = mountMachinery(
       [
         { original: '1', sources: [] },
         { original: '2', sources: [] },
@@ -61,12 +61,12 @@ describe('<Machinery>', () => {
       },
     );
 
-    expect(wrapper.find('MachineryTranslationComponent')).toHaveLength(5);
+    expect(getAllByRole('listitem')).toHaveLength(5);
+    expect(getAllByTitle(/Copy Into Translation/)).toHaveLength(5);
   });
 
   it('renders a reset button if a search query is present', () => {
-    const wrapper = mountMachinery([], { input: 'test', query: 'test' });
-
-    expect(wrapper.find('button')).toHaveLength(1);
+    const { getByRole } = mountMachinery([], { input: 'test', query: 'test' });
+    getByRole('button');
   });
 });

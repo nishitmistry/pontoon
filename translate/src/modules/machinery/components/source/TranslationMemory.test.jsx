@@ -1,35 +1,41 @@
 import React from 'react';
-import { shallow } from 'enzyme';
 
 import { TranslationMemory } from './TranslationMemory';
+import { render } from '@testing-library/react';
+import { expect } from 'vitest';
 
 describe('<TranslationMemory>', () => {
   it('renders the component without number of occurrences properly', () => {
-    const wrapper = shallow(<TranslationMemory />);
-
-    expect(wrapper.find('li')).toHaveLength(1);
-    expect(wrapper.find('Localized')).toHaveLength(1);
-
-    expect(wrapper.find('Localized').at(0).props().id).toEqual(
-      'machinery-TranslationMemory--translation-source',
+    const message = 'test-message';
+    const { getByRole } = render(
+      <MockLocalizationProvider
+        resource={`machinery-TranslationMemory--translation-source = ${message}`}
+      >
+        <TranslationMemory />
+      </MockLocalizationProvider>,
     );
-    expect(wrapper.find('li .translation-source').text()).toEqual(
-      'TRANSLATION MEMORY',
-    );
+
+    getByRole('listitem');
+    expect(
+      getByRole('listitem').querySelector('span.translation-source'),
+    ).toHaveTextContent(message);
   });
 
   it('renders the component with number of occurrences properly', () => {
-    const wrapper = shallow(<TranslationMemory itemCount={2} />);
-
-    expect(wrapper.find('li')).toHaveLength(1);
-    expect(wrapper.find('Localized')).toHaveLength(2);
-
-    expect(wrapper.find('Localized').at(1).props().id).toEqual(
-      'machinery-TranslationMemory--number-occurrences',
+    const message = 'test-title';
+    const { getByRole, getByText, container } = render(
+      <MockLocalizationProvider
+        resource={`machinery-TranslationMemory--number-occurrences = 
+                    .title ${message}`}
+      >
+        <TranslationMemory itemCount={2} />
+      </MockLocalizationProvider>,
     );
-    expect(wrapper.find('sup').props().title).toEqual(
-      'Number of translation occurrences',
-    );
-    expect(wrapper.find('sup').text()).toContain('2');
+
+    getByRole('listitem');
+    getByText('TRANSLATION MEMORY');
+
+    expect(container.querySelector('sup')).toHaveTextContent('2');
+    getByTitle(message);
   });
 });

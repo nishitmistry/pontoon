@@ -1,14 +1,14 @@
-import { mount, shallow } from 'enzyme';
 import { createMemoryHistory } from 'history';
 import React from 'react';
 import { act } from 'react-dom/test-utils';
 import { expect, vi } from 'vitest';
+import { mount } from 'enzyme';
 
 import { createReduxStore, mountComponentWithStore } from '~/test/store';
 
 import { FILTERS_EXTRA, FILTERS_STATUS } from '../constants';
 import { SearchBox, SearchBoxBase } from './SearchBox';
-import { fireEvent } from '@testing-library/react';
+import { fireEvent, render } from '@testing-library/react';
 
 const PROJECT = {
   tags: [],
@@ -24,7 +24,7 @@ describe('<SearchBoxBase>', () => {
     const params = {
       search: '',
     };
-    const wrapper = shallow(
+    const { getByRole } = render(
       <SearchBoxBase
         parameters={params}
         project={PROJECT}
@@ -32,35 +32,35 @@ describe('<SearchBoxBase>', () => {
       />,
     );
 
-    expect(wrapper.find('input#search')).toHaveLength(1);
+    getByRole('searchbox');
   });
 
   it('has the correct placeholder based on parameters', () => {
     for (const { name, slug } of FILTERS_STATUS) {
-      const wrapper = mount(
+      const { getByPlaceholderText } = render(
         <SearchBoxBase
           parameters={{ status: slug }}
           project={PROJECT}
           searchAndFilters={SEARCH_AND_FILTERS}
         />,
       );
-      expect(wrapper.find('input#search').prop('placeholder')).toContain(name);
+      getByPlaceholderText(new RegExp(name));
     }
 
     for (const { name, slug } of FILTERS_EXTRA) {
-      const wrapper = mount(
+      const { getByPlaceholderText } = render(
         <SearchBoxBase
           parameters={{ extra: slug }}
           project={PROJECT}
           searchAndFilters={SEARCH_AND_FILTERS}
         />,
       );
-      expect(wrapper.find('input#search').prop('placeholder')).toContain(name);
+      getByPlaceholderText(new RegExp(name));
     }
   });
 
   it('empties the search field after navigation parameter "search" gets removed', () => {
-    const wrapper = mount(
+    const { getByRole, rerender } = render(
       <SearchBoxBase
         parameters={{ search: 'search' }}
         project={PROJECT}
@@ -68,16 +68,21 @@ describe('<SearchBoxBase>', () => {
       />,
     );
 
-    expect(wrapper.find('input').prop('value')).toEqual('search');
+    expect(getByRole('searchbox')).toHaveValue('search');
 
-    wrapper.setProps({ parameters: { search: null } });
-    wrapper.update();
+    rerender(
+      <SearchBoxBase
+        parameters={{ search: null }}
+        project={PROJECT}
+        searchAndFilters={SEARCH_AND_FILTERS}
+      />,
+    );
 
-    expect(wrapper.find('input').prop('value')).toEqual('');
+    expect(getByRole('searchbox')).toHaveValue('');
   });
 
   it('toggles a filter', () => {
-    const wrapper = mount(
+    const wrapper = render(
       <SearchBoxBase
         parameters={{}}
         project={PROJECT}
@@ -98,7 +103,7 @@ describe('<SearchBoxBase>', () => {
   });
 
   it('sets a single filter', () => {
-    const wrapper = mount(
+    const wrapper = render(
       <SearchBoxBase
         dispatch={() => {}}
         parameters={{ push() {} }}
@@ -123,7 +128,7 @@ describe('<SearchBoxBase>', () => {
   });
 
   it('sets multiple & resets to initial statuses', () => {
-    const wrapper = mount(
+    const wrapper = render(
       <SearchBoxBase
         parameters={{}}
         project={PROJECT}
@@ -162,7 +167,7 @@ describe('<SearchBoxBase>', () => {
 
   it('sets status to null when "all" is selected', () => {
     const push = vi.fn();
-    const wrapper = mount(
+    const wrapper = render(
       <SearchBoxBase
         dispatch={(a) => (typeof a === 'function' ? a() : {})}
         parameters={{ push }}
@@ -193,7 +198,7 @@ describe('<SearchBoxBase>', () => {
 
   it('sets correct status', () => {
     const push = vi.fn();
-    const wrapper = mount(
+    const wrapper = render(
       <SearchBoxBase
         dispatch={(a) => (typeof a === 'function' ? a() : {})}
         parameters={{ push }}
@@ -286,7 +291,7 @@ describe('<SearchBox>', () => {
   });
 
   it('puts focus on the search input on Ctrl + Shift + F', () => {
-    const wrapper = mount(
+    const wrapper = render(
       <SearchBoxBase
         parameters={{ search: '' }}
         project={PROJECT}

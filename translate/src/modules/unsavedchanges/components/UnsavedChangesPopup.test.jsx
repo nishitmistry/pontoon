@@ -1,4 +1,3 @@
-import { mount } from 'enzyme';
 import React from 'react';
 
 import { UnsavedActions, UnsavedChanges } from '~/context/UnsavedChanges';
@@ -6,9 +5,10 @@ import { MockLocalizationProvider } from '~/test/utils';
 
 import { UnsavedChangesPopup } from './UnsavedChangesPopup';
 import { vi } from 'vitest';
+import { fireEvent, render } from '@testing-library/react';
 
 const mountPopup = (onIgnore, resetUnsavedChanges) =>
-  mount(
+  render(
     <MockLocalizationProvider>
       <UnsavedChanges.Provider value={{ onIgnore }}>
         <UnsavedActions.Provider value={{ resetUnsavedChanges }}>
@@ -20,34 +20,34 @@ const mountPopup = (onIgnore, resetUnsavedChanges) =>
 
 describe('<UnsavedChangesPopup>', () => {
   it('renders correctly if shown', () => {
-    const wrapper = mountPopup(() => {});
+    const { container, getByRole, getByText } = mountPopup(() => {});
 
-    expect(wrapper.find('.unsaved-changes')).toHaveLength(1);
-    expect(wrapper.find('.close')).toHaveLength(1);
-    expect(wrapper.find('.title')).toHaveLength(1);
-    expect(wrapper.find('.body')).toHaveLength(1);
-    expect(wrapper.find('.proceed.anyway')).toHaveLength(1);
+    expect(container.querySelector('.unsaved-changes')).toBeInTheDocument();
+    getByRole('button', { name: /Close/ });
+    getByText('YOU HAVE UNSAVED CHANGES');
+    getByText(/Are you sure/);
+    getByRole('button', { name: 'PROCEED' });
   });
 
   it('does not render if not shown', () => {
-    const wrapper = mountPopup(null);
+    const { container } = mountPopup(null);
 
-    expect(wrapper.find('.unsaved-changes')).toHaveLength(0);
+    expect(container.querySelector('.unsaved-changes')).toBeNull();
   });
 
   it('closes the unsaved changes popup when the Close button is clicked', () => {
     const resetUnsavedChanges = vi.fn();
-    const wrapper = mountPopup(() => {}, resetUnsavedChanges);
+    const { getByRole } = mountPopup(() => {}, resetUnsavedChanges);
 
-    wrapper.find('.close').simulate('click');
+    fireEvent.click(getByRole('button', { name: /Close/ }));
     expect(resetUnsavedChanges).toHaveBeenCalledWith(false);
   });
 
   it('ignores the unsaved changes popup when the Proceed button is clicked', () => {
     const resetUnsavedChanges = vi.fn();
-    const wrapper = mountPopup(() => {}, resetUnsavedChanges);
+    const { getByRole } = mountPopup(() => {}, resetUnsavedChanges);
 
-    wrapper.find('.proceed.anyway').simulate('click');
+    fireEvent.click(getByRole('button', { name: 'PROCEED' }));
     expect(resetUnsavedChanges).toHaveBeenCalledWith(true);
   });
 });

@@ -1,4 +1,3 @@
-import { mount } from 'enzyme';
 import { createMemoryHistory } from 'history';
 import React from 'react';
 import { act } from 'react-dom/test-utils';
@@ -11,6 +10,7 @@ import { MockLocalizationProvider } from '~/test/utils';
 
 import { ResourceItem } from './ResourceItem';
 import { ResourceMenu } from './ResourceMenu';
+import { fireEvent, render } from '@testing-library/react';
 
 function createResourceMenu({
   project = 'project',
@@ -29,7 +29,7 @@ function createResourceMenu({
   const history = createMemoryHistory({
     initialEntries: [`/locale/${project}/${resource}/`],
   });
-  return mount(
+  return render(
     <Provider store={store}>
       <LocationProvider history={history}>
         <MockLocalizationProvider>
@@ -42,8 +42,8 @@ function createResourceMenu({
 
 describe('<ResourceMenu>', () => {
   it('renders resource menu correctly', () => {
-    const wrapper = createResourceMenu();
-    wrapper.find('.selector').simulate('click');
+    const { getByRole } = createResourceMenu();
+    fireEvent.click(getByRole('button'));
 
     expect(wrapper.find('.menu .search-wrapper')).toHaveLength(1);
     expect(wrapper.find('.menu > ul')).toHaveLength(2);

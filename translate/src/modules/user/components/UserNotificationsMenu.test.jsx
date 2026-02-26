@@ -1,4 +1,3 @@
-import { mount, shallow } from 'enzyme';
 import React from 'react';
 
 import * as api from '~/api/uxaction';
@@ -8,19 +7,28 @@ import {
   UserNotificationsMenu,
   UserNotificationsMenuDialog,
 } from './UserNotificationsMenu';
-import { vi } from 'vitest';
+import { expect, vi } from 'vitest';
+import { fireEvent, render } from '@testing-library/react';
+import { MockLocalizationProvider } from '../../../test/utils';
+
+const WrapUserNotificationsMenuDialog = (props) => {
+  return (
+    <MockLocalizationProvider>
+      <UserNotificationsMenuDialog {...props} />
+    </MockLocalizationProvider>
+  );
+};
 
 describe('<UserNotificationsMenuDialog>', () => {
+  const NoNotificationText = 'No new notifications.';
   it('shows empty notifications menu if user has no notifications', () => {
     const notifications = [];
-    const wrapper = shallow(
-      <UserNotificationsMenuDialog notifications={notifications} />,
+    const { getByRole, getByText } = render(
+      <WrapUserNotificationsMenuDialog notifications={notifications} />,
     );
 
-    expect(wrapper.find('.notification-list .user-notification')).toHaveLength(
-      0,
-    );
-    expect(wrapper.find('.notification-list .no')).toHaveLength(1);
+    getByRole('listitem');
+    getByText(NoNotificationText);
   });
 
   it('shows a notification in the notifications menu', () => {
@@ -44,12 +52,12 @@ describe('<UserNotificationsMenuDialog>', () => {
       },
     ];
 
-    const wrapper = shallow(
-      <UserNotificationsMenuDialog notifications={notifications} />,
+    const { getByRole, queryByText } = render(
+      <WrapUserNotificationsMenuDialog notifications={notifications} />,
     );
 
-    expect(wrapper.find('.notification-list .no')).toHaveLength(0);
-    expect(wrapper.find(UserNotification)).toHaveLength(1);
+    getByRole('listitem');
+    expect(queryByText(NoNotificationText)).toBeNull();
   });
 });
 
@@ -64,9 +72,9 @@ describe('<UserNotificationsMenu>', () => {
         has_unread: false,
       },
     };
-    const wrapper = shallow(<UserNotificationsMenu user={user} />);
+    const { container } = render(<UserNotificationsMenu user={user} />);
 
-    expect(wrapper.find('.user-notifications-menu')).toHaveLength(0);
+    expect(container).toBeEmptyDOMElement();
   });
 
   it('shows the notifications icon when the user is logged in', () => {
@@ -76,9 +84,11 @@ describe('<UserNotificationsMenu>', () => {
         notifications: [],
       },
     };
-    const wrapper = shallow(<UserNotificationsMenu user={user} />);
+    const { container } = render(<UserNotificationsMenu user={user} />);
 
-    expect(wrapper.find('.user-notifications-menu')).toHaveLength(1);
+    expect(
+      container.querySelector('.user-notifications-menu'),
+    ).toBeInTheDocument();
   });
 
   it('shows the notifications badge when the user has unread notifications and call logUxAction', () => {
@@ -90,9 +100,11 @@ describe('<UserNotificationsMenu>', () => {
         unread_count: '5',
       },
     };
-    const wrapper = mount(<UserNotificationsMenu user={user} />);
+    const { container } = render(<UserNotificationsMenu user={user} />);
 
-    expect(wrapper.find('.user-notifications-menu .badge').text()).toEqual('5');
+    expect(
+      container.querySelector('.user-notifications-menu .badge'),
+    ).toHaveTextContent('5');
     expect(api.logUXAction).toHaveBeenCalled();
   });
 
@@ -105,20 +117,22 @@ describe('<UserNotificationsMenu>', () => {
         notifications: [],
       },
     };
-    const wrapper = shallow(
-      <UserNotificationsMenu
-        markAllNotificationsAsRead={markAllNotificationsAsRead}
-        user={user}
-      />,
+    const { getByRole } = render(
+      <MockLocalizationProvider>
+        <UserNotificationsMenu
+          markAllNotificationsAsRead={markAllNotificationsAsRead}
+          user={user}
+        />
+      </MockLocalizationProvider>,
     );
 
-    // shallow() does not handle useEffect()
-    expect(api.logUXAction).not.toHaveBeenCalled();
-
-    wrapper.find('.selector').simulate('click', {});
+    //useEffect calls the function once
     expect(api.logUXAction).toHaveBeenCalledOnce();
 
-    wrapper.find('.selector').simulate('click', {});
-    expect(api.logUXAction).toHaveBeenCalledOnce();
+    fireEvent.click(getByRole('button'));
+    expect(api.logUXAction).toHaveBeenCalledTimes(2);
+
+    fireEvent.click(getByRole('button'));
+    expect(api.logUXAction).toHaveBeenCalledTimes(2);
   });
 });
