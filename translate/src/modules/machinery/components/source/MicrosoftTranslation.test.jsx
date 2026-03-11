@@ -9,7 +9,7 @@ describe('<MicrosoftTranslation>', () => {
     const message = 'test-message';
     const { getByRole } = render(
       <MockLocalizationProvider
-        resource={`machinery-MicrosoftTranslation--translation-source = ${message}`}
+        resources={`machinery-MicrosoftTranslation--translation-source = ${message}`}
       >
         <MicrosoftTranslation />
       </MockLocalizationProvider>,

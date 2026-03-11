@@ -64,7 +64,7 @@ describe('<OtherLocales>', () => {
     const user = {};
     const { getByText } = render(
       <MockLocalizationProvider
-        resource={`history-History--no-translations = ${message}`}
+        resources={`history-History--no-translations = ${message}`}
       >
         <OtherLocales otherlocales={otherlocales} user={user} />,
       </MockLocalizationProvider>,

@@ -9,7 +9,7 @@ describe('<GoogleTranslation>', () => {
     const message = 'test-source';
     const { getByRole, getByText } = render(
       <MockLocalizationProvider
-        resource={`machinery-GoogleTranslation--translation-source = ${message}`}
+        resources={`machinery-GoogleTranslation--translation-source = ${message}`}
       >
         <GoogleTranslation />
       </MockLocalizationProvider>,
@@ -28,7 +28,7 @@ describe('<GoogleTranslation>', () => {
 
     const { container, getByRole } = render(
       <MockLocalizationProvider
-        resource={`machinery-GoogleTranslation--translation-source = ${message}`}
+        resources={`machinery-GoogleTranslation--translation-source = ${message}`}
       >
         <GoogleTranslation
           isOpenAIChatGPTSupported={true}

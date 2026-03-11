@@ -18,7 +18,7 @@ describe('<MicrosoftTerminology>', () => {
     const { getByRole } = render(
       <Locale.Provider value={LOCALE}>
         <MockLocalizationProvider
-          resource={`machinery-MicrosoftTerminology--translation-source = ${message}`}
+          resources={`machinery-MicrosoftTerminology--translation-source = ${message}`}
         >
           <MicrosoftTerminology original={PROPS.original} />
         </MockLocalizationProvider>

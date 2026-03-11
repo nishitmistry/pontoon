@@ -9,7 +9,7 @@ describe('<CaighdeanTranslation>', () => {
     const message = 'test-caighdean-translation';
     const { getByRole, getByText } = render(
       <MockLocalizationProvider
-        resource={`machinery-CaighdeanTranslation--translation-source = ${message}`}
+        resources={`machinery-CaighdeanTranslation--translation-source = ${message}`}
       >
         <CaighdeanTranslation />
       </MockLocalizationProvider>,

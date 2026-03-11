@@ -425,6 +425,7 @@ export function FiltersPanel({
       <div
         className={`visibility-switch ${filterIcon}`}
         role='button'
+        aria-label='Show Filters'
         onClick={toggleVisible}
       >
         <span className='status fas'></span>
